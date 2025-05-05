@@ -8,18 +8,16 @@
       <div class="row fullscreen align-items-center justify-content-between">
         <div class="col-lg-6 col-md-6 banner-left">
           <h6 class="text-white">
-            Away from monotonous life
-          </h6>
+            Tránh xa cuộc sống đơn điệu </h6>
           <h1 class="text-white">
             Magical Travel
           </h1>
           <p class="text-white">
-            If you are looking at blank cassettes on the web, you may be very
-            confused at the difference in price. You may see some for as low as $.17
-            each.
+            Nếu bạn đang xem các băng trống trên web, bạn có thể rất bối rối về sự khác biệt về giá. Bạn có thể thấy một
+            số với giá thấp nhất là 0,17 mỗi cái.
           </p>
           <a class="primary-btn text-uppercase" href="#">
-            Get Started
+            Bắt đầu
           </a>
         </div>
         <div class="col-lg-4 col-md-6 banner-right">
@@ -38,47 +36,45 @@
                 Hotels
               </a>
             </li>
-            <li class="nav-item">
-              <a aria-controls="holiday" aria-selected="false"
-                 class="nav-link" data-toggle="tab" href="#holiday"
-                 id="holiday-tab" role="tab">
-                Holidays
-              </a>
-            </li>
+            <!--            <li class="nav-item">-->
+            <!--              <a aria-controls="holiday" aria-selected="false"-->
+            <!--                 class="nav-link" data-toggle="tab" href="#holiday"-->
+            <!--                 id="holiday-tab" role="tab">-->
+            <!--                Holidays-->
+            <!--              </a>-->
+            <!--            </li>-->
           </ul>
           <div class="tab-content" id="myTabContent">
-            <div aria-labelledby="flight-tab" class="tab-pane fade show active"
-                 id="flight" role="tabpanel">
-              <form class="form-wrap">
-                <input class="form-control" name="name"
-                       onblur="this.placeholder = 'From '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="From " type="text"/>
-                <input class="form-control" name="to"
-                       onblur="this.placeholder = 'To '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="To " type="text"/>
-                <input class="form-control date-picker" name="start"
-                       onblur="this.placeholder = 'Start '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Start " type="text"/>
-                <input class="form-control date-picker" name="return"
-                       onblur="this.placeholder = 'Return '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Return " type="text"/>
-                <input class="form-control" max="20" min="1"
-                       name="adults"
-                       onblur="this.placeholder = 'Adults '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Adults " type="number"/>
-                <input class="form-control" max="20" min="1"
-                       name="child"
-                       onblur="this.placeholder = 'Child '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Child " type="number"/>
-                <a class="primary-btn text-uppercase" href="#">
-                  Search flights
-                </a>
+            <div aria-labelledby="flight-tab" class="tab-pane fade show active" id="flight" role="tabpanel">
+              <form class="form-wrap" @submit.prevent="searchFlight"> <!-- Ngăn reload khi submit -->
+                <select class="form-control" v-model="departure" @blur="updatePlaceholder" @focus="clearPlaceholder">
+                  <option value="" disabled selected>Nơi đi</option>
+                  <option v-for="location in locations" :key="location.code" :value="location.code">{{
+                      location.name
+                    }}
+                  </option>
+                </select>
+
+                <select class="form-control" v-model="arrival" @blur="updatePlaceholder" @focus="clearPlaceholder">
+                  <option value="" disabled selected>Nơi đến</option>
+                  <option v-for="location in locations" :key="location.code" :value="location.code">{{
+                      location.name
+                    }}
+                  </option>
+                </select>
+
+                <input class="form-control"
+                       name="start"
+                       v-model="startDate"
+                       @blur="updatePlaceholder"
+                       @focus="clearPlaceholder"
+                       placeholder="Ngày khởi hành"
+                       type="date"/>
+                <!--                <Datepicker v-model="startDate" placeholder="Ngày khởi hành" :format="'yyyy-MM-dd'" class="form-control"/>-->
+
+                <button type="submit" class="primary-btn text-uppercase"> <!-- Sử dụng type="submit" -->
+                  Tìm kiếm chuyến bay
+                </button>
               </form>
             </div>
             <div aria-labelledby="hotel-tab" class="tab-pane fade" id="hotel"
@@ -161,11 +157,11 @@
         <div class="menu-content pb-70 col-lg-8">
           <div class="title text-center">
             <h1 class="mb-10">
-              Popular Destinations
+              Điểm đến tiềm năng
             </h1>
             <p>
-              We all live in an age that belongs to the young at heart. Life
-              that is becoming extremely fast, day.
+              Tất cả chúng ta đều sống trong một thời đại thuộc về những người trẻ tuổi. Cuộc sống đang trở nên cực kỳ
+              nhanh chóng.
             </p>
           </div>
         </div>
@@ -240,11 +236,9 @@
         <div class="menu-content pb-70 col-lg-8">
           <div class="title text-center">
             <h1 class="mb-10">
-              We Provide Affordable Prices
-            </h1>
+              Chúng tôi cung cấp giá cả phải chăng </h1>
             <p>
-              Well educated, intellectual people, especially scientists at all
-              times demonstrate considerably.
+              Giáo dục tốt, những người trí thức, đặc biệt là các nhà khoa học mọi lúc thể hiện đáng kể.
             </p>
           </div>
         </div>
@@ -253,7 +247,7 @@
         <div class="col-lg-4">
           <div class="single-price">
             <h4>
-              Cheap Packages
+              Gói giá rẻ
             </h4>
             <ul class="price-list">
               <li class="d-flex justify-content-between align-items-center">
@@ -310,7 +304,7 @@
         <div class="col-lg-4">
           <div class="single-price">
             <h4>
-              Luxury Packages
+              Gói sang trọng
             </h4>
             <ul class="price-list">
               <li class="d-flex justify-content-between align-items-center">
@@ -367,7 +361,7 @@
         <div class="col-lg-4">
           <div class="single-price">
             <h4>
-              Camping Packages
+              Gói cắm trại
             </h4>
             <ul class="price-list">
               <li class="d-flex justify-content-between align-items-center">
@@ -431,11 +425,9 @@
         <div class="menu-content pb-70 col-lg-9">
           <div class="title text-center">
             <h1 class="mb-10">
-              Other issues we can help you with
-            </h1>
+              Các vấn đề khác mà chúng tôi có thể giúp bạn </h1>
             <p>
-              We all live in an age that belongs to the young at heart. Life
-              that is.
+              Tất cả chúng ta đều sống trong một thời đại thuộc về những người trẻ tuổi. Cuộc sống đó là.
             </p>
           </div>
         </div>
@@ -448,12 +440,11 @@
             </div>
             <a href="#">
               <h4>
-                Rent a Car
+                Thuê một chiếc xe hơi
               </h4>
             </a>
             <p>
-              The preservation of human life is the ultimate value, a pillar
-              of ethics and the foundation.
+
             </p>
           </div>
         </div>
@@ -464,12 +455,11 @@
             </div>
             <a href="#">
               <h4>
-                Cruise Booking
+                Đặt chỗ đi du lịch
               </h4>
             </a>
             <p>
-              I was always somebody who felt quite sorry for myself, what I
-              had not got compared.
+
             </p>
           </div>
         </div>
@@ -480,12 +470,11 @@
             </div>
             <a href="#">
               <h4>
-                To Do List
+
               </h4>
             </a>
             <p>
-              The following article covers a topic that has recently moved to
-              center stage–at least it seems.
+
             </p>
           </div>
         </div>
@@ -496,12 +485,11 @@
             </div>
             <a href="#">
               <h4>
-                Food Features
+                Trải nghiệm ẩm thực
               </h4>
             </a>
             <p>
-              There are many kinds of narratives and organizing principles.
-              Science is driven by evidence.
+
             </p>
           </div>
         </div>
@@ -515,11 +503,10 @@
         <div class="menu-content pb-70 col-lg-8">
           <div class="title text-center">
             <h1 class="mb-10">
-              Testimonial from our Clients
+              Chứng thực từ khách hàng của chúng tôi
             </h1>
             <p>
-              The French Revolution constituted for the conscience of the
-              dominant aristocratic class a fall from
+
             </p>
           </div>
         </div>
@@ -698,20 +685,18 @@
       <div class="row align-items-center justify-content-end">
         <div class="col-lg-6 col-md-12 home-about-left">
           <h1>
-            Did not find your Package?
+            Không tìm thấy gói của bạn? <br/>
+
+
+            Hãy hỏi chúng tôi.
             <br/>
-            Feel free to ask us.
-            <br/>
-            We‘ll make it for you
+            Chúng tôi sẽ làm cho nó cho bạn
           </h1>
           <p>
-            inappropriate behavior is often laughed off as “boys will be boys,”
-            women face higher conduct standards especially in the workplace. That’s
-            why it’s crucial that, as women, our behavior on the job is beyond
-            reproach. inappropriate behavior is often laughed.
+
           </p>
           <a class="primary-btn text-uppercase" href="#">
-            request custom price
+            yêu cầu về giá
           </a>
         </div>
         <div class="col-lg-6 col-md-12 home-about-right no-padding">
@@ -727,11 +712,10 @@
         <div class="menu-content pb-60 col-lg-9">
           <div class="title text-center">
             <h1 class="mb-10">
-              Latest from Our Blog
+              Các bài viết mới nhất
             </h1>
             <p>
-              With the exception of Nietzsche, no other madman has contributed
-              so much to human sanity as has.
+
             </p>
           </div>
         </div>
@@ -943,3 +927,55 @@
 
 
 </template>
+
+
+<script>
+import axios from '../../services/api.js';
+// import Datepicker from 'vue3-datepicker';
+// import 'vue3-datepicker/dist/vue3-datepicker.css';
+export default {
+  data() {
+    return {
+      departure: '',
+      arrival: '',
+      startDate: '',
+      locations: [
+        {name: "Hà Nội", code: "HAN"},
+        {name: "TP.HCM", code: "SGN"},
+        {name: "Đà Nẵng", code: "DAD"},
+        {name: "Nha Trang", code: "CXR"},
+        {name: "Phú Quốc", code: "PQC"},
+        {name: "Hải Phòng", code: "HPH"},
+        {name: "Quy Nhơn", code: "UIH"},
+        {name: "Cần Thơ", code: "VCA"},
+        {name: "Vinh", code: "VII"},
+        {name: "Thanh Hóa", code: "THD"},
+      ]
+    };
+  },
+  methods: {
+    searchFlight() {
+      this.$router.push({
+        name: 'search-flight',
+        query: {
+          departure: this.departure,
+          arrival: this.arrival,
+          startDate: this.startDate
+        }
+      });
+    },
+
+    updatePlaceholder(event) {
+      event.target.placeholder = event.target.name === 'name' ? 'Nơi đi ' : 'Nơi đến ';
+    },
+
+    clearPlaceholder(event) {
+      event.target.placeholder = '';
+    }
+  }
+};
+
+</script>
+<style scoped>
+/* Style cho form nếu cần */
+</style>

@@ -2,24 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { jwtDecode } from 'jwt-decode';
 
 // Import Layouts
-import FullLayout from '@/layouts/full/FullLayout.vue';
-import BlankLayout from '@/layouts/blank/BlankLayout.vue';
+
 import AppLayout from '@/views/App.vue';
-
-// Import Admin Views
-import Dashboard from '@/views/Admin/dashboard/index.vue';
-import Alerts from '@/views/Admin/ui-components/Alerts.vue';
-import Buttons from '@/views/Admin/ui-components/Buttons.vue';
-import Cards from '@/views/Admin/ui-components/Cards.vue';
-import Tables from '@/views/Admin/ui-components/Tables.vue';
-import Icons from '@/views/Admin/pages/Icons.vue';
-import SamplePage from '@/views/Admin/pages/SamplePage.vue';
-
-// Import Auth Views
-import Login from '@/views/Admin/authentication/BoxedLogin.vue';
-import Register from '@/views/Admin/authentication/BoxedRegister.vue';
-import ErrorPage from '@/views/Admin/authentication/Error.vue';
-
 // Import Customer Views
 import Home from '@/views/Customer/Home.vue';
 import About from '@/views/Customer/About.vue';
@@ -30,7 +14,16 @@ import Hotels from '@/views/Customer/Hotels.vue';
 import Packages from '@/views/Customer/Packages.vue';
 import Insurance from '@/views/Customer/Insurance.vue';
 import Elements from '@/views/Customer/Elements.vue';
+import FlightTicketList from '@/views/Customer/FlightTicketList.vue';
+import Login from '@/views/Login.vue';
+import Register from '@/views/Register.vue';
+import SearchFlight from '@/views/Customer/SearchFlight.vue';
+import FlightDetails from '@/views/Customer/FlightDetails.vue';
+import BookingConfirm from '@/views/Customer/BookingConfirm.vue';
+import ThankYou from '@/views/Customer/ThankYouPage.vue'
 
+// import FlightTicketDetails from '@/views/Customer/FlightTicketDetails.vue';
+import path from 'path';
 const routes = [
   // Customer routes
   {
@@ -45,49 +38,23 @@ const routes = [
       { path: 'hotels', component: Hotels },
       { path: 'packages', component: Packages },
       { path: 'insurance', component: Insurance },
-      { path: 'elements', component: Elements }
+      { path: 'elements', component: Elements },
+      { path: 'flight-ticket-list', component: FlightTicketList },
+      { path: 'search-flight', component: SearchFlight, name: 'search-flight' },
+      { path: 'login', component: Login },
+      { path: 'register', component: Register },
+      { path: 'flight-details/:id', component: FlightDetails, name: 'flight-details' },
+      { path: 'booking-confirm/:id', component: BookingConfirm, name: 'booking-confirm' },
+      { path: 'thank-you', component: ThankYou, name: 'thank-you' },
+
     ]
+
+
   },
 
   // Login (outside admin)
-  {
-    path: '/login',
-    component: Login
-  },
 
-  // Admin routes
-  {
-    path: '/main',
-    meta: { requiresAuth: true },
-    redirect: '/main/',
-    component: FullLayout,
-    children: [
-      { path: '', name: 'Dashboard', component: Dashboard },
-      { path: 'ui/alerts', name: 'Alert', component: Alerts },
-      { path: 'ui/buttons', name: 'Buttons', component: Buttons },
-      { path: 'ui/cards', name: 'Cards', component: Cards },
-      { path: 'ui/tables', name: 'Tables', component: Tables },
-      { path: 'icons', name: 'Icons', component: Icons },
-      { path: 'sample-page', name: 'Starter', component: SamplePage }
-    ]
-  },
 
-  // Auth routes (register)
-  {
-    path: '/auth',
-    component: BlankLayout,
-    meta: { requiresAuth: false },
-    children: [
-      { path: 'login', name: 'AuthLogin', component: Login },
-      { path: 'register', name: 'Register', component: Register }
-    ]
-  },
-
-  // 404 Error route
-  {
-    path: '/:pathMatch(.*)*',
-    component: ErrorPage
-  }
 ];
 
 const router = createRouter({
