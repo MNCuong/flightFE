@@ -50,7 +50,7 @@
                 <ul class="dropdown-menu dropdown-menu-left
                  custom-dropdown" aria-labelledby="userDropdown">
                   <li>
-                    <router-link to="/history">Lịch sử đặt vé</router-link>
+                    <router-link to="/flight-ticket-list">Lịch sử đặt vé</router-link>
                   </li>
                   <li>
                     <a href="#" @click.prevent="logout">Đăng xuất</a>
