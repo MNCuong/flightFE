@@ -2,15 +2,15 @@
   <section class="flight-history container">
     <h1>📜 Danh sách vé đã đặt</h1>
 
-    <div
-      v-for="(ticket, index) in tickets"
-      :key="index"
-      class="ticket-card"
-    >
+    <!-- Nếu không có vé -->
+    <p v-if="tickets.length === 0">Bạn chưa đặt vé nào, vui lòng đặt vé.</p>
+
+    <!-- Nếu có vé -->
+    <div v-for="(ticket, index) in tickets" :key="index" class="ticket-card">
       <div class="ticket-header">
         <div>
-          🧾 Mã đặt: <strong>{{ ticket.idBooking }}</strong><br />
-          🕓 Thời gian đặt: {{ ticket.bookingTime || 'Không rõ' }}
+          🧾 Mã đặt: <strong>{{ ticket.transactionId }}</strong><br />
+          🕓 Thời gian đặt: {{ ticket.createAt || 'Không rõ' }}
         </div>
         <button @click="toggleDetails(index)">
           {{ ticket.showDetails ? 'Ẩn chi tiết' : 'Hiện chi tiết' }}
@@ -18,21 +18,51 @@
       </div>
 
       <div v-if="ticket.showDetails" class="ticket-details">
-        <p><strong>Số hiệu chuyến bay:</strong> {{ ticket.idBooking }}</p>
-        <p><strong>Số ghế:</strong> {{ ticket.seatNumbers.join(', ') }}</p>
-        <p><strong>Hành khách:</strong></p>
-        <ul>
-          <li v-for="(name, idx) in ticket.passengerNames" :key="idx">
-            {{ name }}
-          </li>
-        </ul>
-        <p><strong>Ngày bay:</strong> {{ ticket.flightDate }}</p>
-        <p><strong>Giờ bay:</strong> {{ ticket.arrivalTime }}</p>
-        <p><strong>Sân bay đi:</strong> {{ ticket.departureAirport }}</p>
-        <p><strong>Sân bay đến:</strong> {{ ticket.arrivalAirport }}</p>
+        <div class="detail-row">
+          <span class="label">📌 Mã đặt chỗ:</span>
+          <span class="value">{{ ticket.idBooking }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">💺 Số ghế:</span>
+          <span class="value">{{ ticket.seatNumbers.join(', ') }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">👤 Hành khách:</span>
+          <span class="value">
+            <ul class="passenger-list">
+              <li v-for="(name, idx) in ticket.passengerNames" :key="idx">
+                {{ name }}
+              </li>
+            </ul>
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">🗓️ Ngày bay:</span>
+          <span class="value">{{ ticket.flightDate }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">⏰ Giờ bay:</span>
+          <span class="value">{{ ticket.arrivalTime }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">🛫 Sân bay đi:</span>
+          <span class="value">{{ ticket.departureAirport }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">🛬 Sân bay đến:</span>
+          <span class="value">{{ ticket.arrivalAirport }}</span>
+        </div>
       </div>
+
     </div>
   </section>
+
 </template>
 
 <script>
@@ -43,38 +73,67 @@ import api from '../../services/api';
 export default {
   setup() {
     const tickets = ref([]);
-
     const groupTicketsByBookingId = (rawTickets) => {
-      const grouped = {};
+        const grouped = {};
 
-      rawTickets.forEach(ticket => {
-        const {
-          idBooking, seatNumber, passengerName,
-          flightDate, arrivalTime,
-          departureAirport, arrivalAirport,
-          bookingTime // ← thêm nếu có
-        } = ticket;
+        rawTickets.forEach(ticket => {
+          const flightId = ticket.flight.id;
+          const transactionId = ticket.transactionId || 'Không rõ';
+          const idBooking = ticket.id;
 
-        if (!grouped[idBooking]) {
-          grouped[idBooking] = {
-            idBooking,
-            seatNumbers: [seatNumber],
-            passengerNames: [passengerName],
-            flightDate,
-            arrivalTime,
-            departureAirport,
-            arrivalAirport,
-            bookingTime: bookingTime || null,
-            showDetails: false
-          };
-        } else {
-          grouped[idBooking].seatNumbers.push(seatNumber);
-          grouped[idBooking].passengerNames.push(passengerName);
-        }
-      });
+          if (!grouped[transactionId]) {
+            grouped[transactionId] = {
+              idBooking: `${idBooking}`,
+              seatNumbers: [ticket.seatNumber],
+              passengerNames: [ticket.customerName],
+              flightDate: ticket.flight.flightDate.split('T')[0],
+              arrivalTime: ticket.arrival.actual,
+              departureAirport: ticket.departure.airport,
+              arrivalAirport: ticket.arrival.airport,
+              bookingTime: ticket.createdAt || 'Không rõ',
+              showDetails: false,
+              transactionId: transactionId,
+              createAt: ticket.createdAt || 'Không rõ'
+            };
+          } else {
+            grouped[transactionId].seatNumbers.push(ticket.seatNumber);
+            grouped[transactionId].passengerNames.push(ticket.customerName);
+          }
+        });
 
-      return Object.values(grouped);
-    };
+        return Object.values(grouped);
+      };
+    // const groupTicketsByBookingId = (rawTickets) => {
+    //   const grouped = {};
+
+    //   rawTickets.forEach(ticket => {
+    //     const {
+    //       idBooking, seatNumber, passengerName,
+    //       flightDate, arrivalTime,
+    //       departureAirport, arrivalAirport,
+    //       bookingTime // ← thêm nếu có
+    //     } = ticket;
+
+    //     if (!grouped[idBooking]) {
+    //       grouped[idBooking] = {
+    //         idBooking,
+    //         seatNumbers: [seatNumber],
+    //         passengerNames: [passengerName],
+    //         flightDate,
+    //         arrivalTime,
+    //         departureAirport,
+    //         arrivalAirport,
+    //         bookingTime: bookingTime || null,
+    //         showDetails: false
+    //       };
+    //     } else {
+    //       grouped[idBooking].seatNumbers.push(seatNumber);
+    //       grouped[idBooking].passengerNames.push(passengerName);
+    //     }
+    //   });
+
+    //   return Object.values(grouped);
+    // };
 
     const toggleDetails = (index) => {
       tickets.value[index].showDetails = !tickets.value[index].showDetails;
@@ -90,7 +149,6 @@ export default {
 
       const decoded = jwtDecode(token);
       const email = decoded.sub;
-
       try {
         const response = await api.get('/customer/booking/list-ticket-booking', {
           params: { email }
@@ -158,5 +216,34 @@ button {
 button:hover {
   background-color: #0056b3;
 }
-</style>
+.ticket-details {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-left: 4px solid #007BFF;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+}
 
+.detail-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.label {
+  width: 150px;
+  font-weight: 600;
+  color: #333;
+}
+
+.value {
+  flex: 1;
+  color: #444;
+}
+
+.passenger-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  list-style-type: disc;
+}
+
+</style>

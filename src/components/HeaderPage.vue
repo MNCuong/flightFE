@@ -32,6 +32,7 @@
           <ul class="nav-menu">
             <li><router-link to="/">Trang Chủ</router-link></li>
             <li><router-link to="/about">Giới Thiệu</router-link></li>
+            <li><router-link to="/search-flight">Tìm kiếm chuyến bay</router-link></li>
             <li><router-link to="/packages">Gói Dịch Vụ</router-link></li>
             <li><router-link to="/hotels">Khách Sạn</router-link></li>
             <li><router-link to="/insurance">Bảo Hiểm</router-link></li>
@@ -51,6 +52,9 @@
                  custom-dropdown" aria-labelledby="userDropdown">
                   <li>
                     <router-link to="/flight-ticket-list">Lịch sử đặt vé</router-link>
+                  </li>
+                  <li>
+                    <router-link to="/user-info">Thông tin cá nhân</router-link>
                   </li>
                   <li>
                     <a href="#" @click.prevent="logout">Đăng xuất</a>

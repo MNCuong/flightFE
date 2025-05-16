@@ -47,17 +47,17 @@
           <div class="tab-content" id="myTabContent">
             <div aria-labelledby="flight-tab" class="tab-pane fade show active" id="flight" role="tabpanel">
               <form class="form-wrap" @submit.prevent="searchFlight"> <!-- Ngăn reload khi submit -->
-                <select class="form-control" v-model="departure" @blur="updatePlaceholder" @focus="clearPlaceholder">
-                  <option value="" disabled selected>Nơi đi</option>
-                  <option v-for="location in locations" :key="location.code" :value="location.code">{{
+                <select class="form-control" name="departure" v-model="departure" @blur="updatePlaceholder" @focus="clearPlaceholder">
+                  <option value="" disabled >Nơi đi</option>
+                  <option v-for="location in locations" :label="location.city" :value="location.city">{{
                       location.name
                     }}
                   </option>
                 </select>
 
-                <select class="form-control" v-model="arrival" @blur="updatePlaceholder" @focus="clearPlaceholder">
-                  <option value="" disabled selected>Nơi đến</option>
-                  <option v-for="location in locations" :key="location.code" :value="location.code">{{
+                <select class="form-control" name="arrival" v-model="arrival" @blur="updatePlaceholder" @focus="clearPlaceholder">
+                  <option value="" disabled >Nơi đến</option>
+                  <option v-for="location in locations" :label="location.city" :value="location.city">{{
                       location.name
                     }}
                   </option>
@@ -77,74 +77,41 @@
                 </button>
               </form>
             </div>
-            <div aria-labelledby="hotel-tab" class="tab-pane fade" id="hotel"
-                 role="tabpanel">
-              <form class="form-wrap">
-                <input class="form-control" name="name"
-                       onblur="this.placeholder = 'From '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="From " type="text"/>
-                <input class="form-control" name="to"
-                       onblur="this.placeholder = 'To '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="To " type="text"/>
-                <input class="form-control date-picker" name="start"
-                       onblur="this.placeholder = 'Start '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Start " type="text"/>
-                <input class="form-control date-picker" name="return"
-                       onblur="this.placeholder = 'Return '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Return " type="text"/>
-                <input class="form-control" max="20" min="1"
-                       name="adults"
-                       onblur="this.placeholder = 'Adults '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Adults " type="number"/>
-                <input class="form-control" max="20" min="1"
-                       name="child"
-                       onblur="this.placeholder = 'Child '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Child " type="number"/>
-                <a class="primary-btn text-uppercase" href="#">
-                  Search Hotels
-                </a>
-              </form>
-            </div>
-            <div aria-labelledby="holiday-tab" class="tab-pane fade" id="holiday"
-                 role="tabpanel">
-              <form class="form-wrap">
-                <input class="form-control" name="name"
-                       onblur="this.placeholder = 'From '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="From " type="text"/>
-                <input class="form-control" name="to"
-                       onblur="this.placeholder = 'To '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="To " type="text"/>
-                <input class="form-control date-picker" name="start"
-                       onblur="this.placeholder = 'Start '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Start " type="text"/>
-                <input class="form-control date-picker" name="return"
-                       onblur="this.placeholder = 'Return '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Return " type="text"/>
-                <input class="form-control" max="20" min="1"
-                       name="adults"
-                       onblur="this.placeholder = 'Adults '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Adults " type="number"/>
-                <input class="form-control" max="20" min="1"
-                       name="child"
-                       onblur="this.placeholder = 'Child '"
-                       onfocus="this.placeholder = ''"
-                       placeholder="Child " type="number"/>
-                <a class="primary-btn text-uppercase" href="#">
-                  Search Holidays
-                </a>
-              </form>
-            </div>
+<!--            <div aria-labelledby="hotel-tab" class="tab-pane fade" id="hotel"-->
+<!--                 role="tabpanel">-->
+<!--              <form class="form-wrap">-->
+<!--                <input class="form-control" name="name"-->
+<!--                       onblur="this.placeholder = 'From '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="From " type="text"/>-->
+<!--                <input class="form-control" name="to"-->
+<!--                       onblur="this.placeholder = 'To '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="To " type="text"/>-->
+<!--                <input class="form-control date-picker" name="start"-->
+<!--                       onblur="this.placeholder = 'Start '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="Start " type="text"/>-->
+<!--                <input class="form-control date-picker" name="return"-->
+<!--                       onblur="this.placeholder = 'Return '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="Return " type="text"/>-->
+<!--                <input class="form-control" max="20" min="1"-->
+<!--                       name="adults"-->
+<!--                       onblur="this.placeholder = 'Adults '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="Adults " type="number"/>-->
+<!--                <input class="form-control" max="20" min="1"-->
+<!--                       name="child"-->
+<!--                       onblur="this.placeholder = 'Child '"-->
+<!--                       onfocus="this.placeholder = ''"-->
+<!--                       placeholder="Child " type="number"/>-->
+<!--                <a class="primary-btn text-uppercase" href="#">-->
+<!--                  Search Hotels-->
+<!--                </a>-->
+<!--              </form>-->
+<!--            </div>-->
+
           </div>
         </div>
       </div>
@@ -931,26 +898,16 @@
 
 <script>
 import axios from '../../services/api.js';
-// import Datepicker from 'vue3-datepicker';
-// import 'vue3-datepicker/dist/vue3-datepicker.css';
 export default {
   data() {
     return {
       departure: '',
       arrival: '',
       startDate: '',
-      locations: [
-        {name: "Hà Nội", code: "HAN"},
-        {name: "TP.HCM", code: "SGN"},
-        {name: "Đà Nẵng", code: "DAD"},
-        {name: "Nha Trang", code: "CXR"},
-        {name: "Phú Quốc", code: "PQC"},
-        {name: "Hải Phòng", code: "HPH"},
-        {name: "Quy Nhơn", code: "UIH"},
-        {name: "Cần Thơ", code: "VCA"},
-        {name: "Vinh", code: "VII"},
-        {name: "Thanh Hóa", code: "THD"},
-      ]
+      locations: [],
+      page: 0,
+      size: 10
+
     };
   },
   methods: {
@@ -960,20 +917,45 @@ export default {
         query: {
           departure: this.departure,
           arrival: this.arrival,
-          startDate: this.startDate
+          startDate: this.startDate,
+          page:this.page,
+          size:this.size
         }
       });
     },
 
     updatePlaceholder(event) {
-      event.target.placeholder = event.target.name === 'name' ? 'Nơi đi ' : 'Nơi đến ';
+      if (event.target.name === 'departure') {
+        event.target.placeholder = 'Nơi đi';
+      } else if (event.target.name === 'arrival') {
+        event.target.placeholder = 'Nơi đến';
+      } else if (event.target.name === 'start') {
+        event.target.placeholder = 'Ngày khởi hành';
+      }
     },
 
-    clearPlaceholder(event) {
-      event.target.placeholder = '';
-    }
+
+    clearPlaceholder(event)
+      {
+        event.target.placeholder = '';
+      }
+    },
+
+  mounted() {
+    axios.get('/airport-info/list')
+        .then(response => {
+          this.locations = response.data.data;
+          console.log("abc",this.locations);
+          const cities = this.locations.map(location => location.city);
+          const code = this.locations.map(location => location.code);
+          console.log("Cities:", cities);
+          console.log("Cities:", this.locations.code);
+        })
+        .catch(error => {
+          console.error('Lỗi khi lấy dữ liệu sân bay:', error);
+        });
   }
-};
+  };
 
 </script>
 <style scoped>

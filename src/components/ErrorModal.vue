@@ -1,108 +1,58 @@
 <template>
-    <div v-if="show" class="modal" @click="closeModalOutside">
-      <div class="modal-content" @click.stop>
-        <span class="close-btn" @click="closeModal">&times;</span>
+  <div v-if="isVisible" class="modal-mask">
+    <div class="modal-wrapper">
+      <div class="modal-container">
+        <h5 class="modal-title">Thông báo lỗi</h5>
         <p>{{ message }}</p>
+        <button class="btn btn-danger" @click="closeModal">Đóng</button>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        show: false,
-        message: ''
-      }
+  </div>
+</template>
+
+<script>
+export default {
+  props: ['message'],
+  data() {
+    return {
+      isVisible: false
+    };
+  },
+  methods: {
+    openModal(msg) {
+      this.message = msg;
+      this.visible = true;
     },
-    methods: {
-      openModal(message) {
-        // Mở modal chỉ khi nó chưa được mở
-        if (!this.show) {
-          this.message = message;
-          this.show = true;
-        }
-      },
-      closeModal() {
-        this.show = false;
-      },
-      closeModalOutside(event) {
-        // Đảm bảo modal chỉ tắt khi người dùng nhấn vào phần ngoài modal-content
-        if (event.target === this.$el) {
-          this.closeModal();
-        }
-      }
+    closeModal() {
+      this.isVisible = false;
     }
   }
-  </script>
-  
-  <style scoped>
-  /* Style cho modal */
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.3s ease;
-  }
-  
-  .modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    width: 80%;
-    max-width: 500px;
-    transform: translateY(-20px);
-    opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-  
-  .modal.show .modal-content {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 25px;
-    font-weight: bold;
-    color: #888;
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-  
-  .close-btn:hover {
-    color: #d9534f;
-  }
-  
-  p {
-    font-size: 16px;
-    color: #333;
-    text-align: center;
-    margin-top: 20px;
-  }
-  
-  .modal .modal-content {
-    animation: fadeIn 0.2s ease-out;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-wrapper {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+}
+
+.modal-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  text-align: center;
+}
+</style>

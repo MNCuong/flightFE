@@ -15,66 +15,91 @@
         </div>
     </section>
     <div class="container-fluid mt-4 px-4">
-        <div class="row">
+        <div class="row gy-4">
+            <!-- Thông tin chuyến bay + hành khách -->
             <div class="col-md-8">
-                <div class="card shadow-sm border-0 p-4 mb-3">
-                    <h6 class="card-title text-primary">Thông tin chuyến bay</h6>
-                    <div class="flight-info">
-                        <strong>Hãng bay:</strong> {{ flight.airline?.name }} - {{ flight.flightDetails?.number }} <br>
-                        <strong>Giờ đi:</strong> {{ formatTime(flight.departureTime) }} <br>
-                        <strong>Giờ đến:</strong> {{ formatTime(flight.arrivalTime) }} <br>
-                        <strong>Giá Economy:</strong> {{ flight.priceEconomy?.toLocaleString() }} VNĐ <br>
-                        <strong>Giá Business:</strong> {{ flight.priceBusiness?.toLocaleString() }} VNĐ <br>
-                    </div>
+                <!-- Thông tin chuyến bay -->
+                <div class="card flight-card shadow-lg border-0 p-4 mb-4">
+                    <h5 class="card-title text-primary mb-3">✈️ Thông tin chuyến bay</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Hãng bay:</strong> {{ flight.airline?.name }} - {{ flight.flightDetails?.number }}
+                        </li>
+                        <li><strong>Tuyến bay:</strong> {{ routeLabel }}</li>
+                        <li><strong>🕓 Giờ đi:</strong> {{ formatTime(flight.departureTime) }}</li>
+                        <li><strong>🕘 Giờ đến:</strong> {{ formatTime(flight.arrivalTime) }}</li>
+                        <li><strong>💺 Giá Economy:</strong> {{ flight.priceEconomy?.toLocaleString() }} VNĐ</li>
+                        <li><strong>💼 Giá Business:</strong> {{ flight.priceBusiness?.toLocaleString() }} VNĐ</li>
+                    </ul>
                 </div>
 
-                <!-- Hiển thị thông tin hành khách -->
-                <div class="mt-4">
-                    <h6 class="text-primary">Thông tin hành khách</h6>
-                    <div class="passenger-container">
-                        <div v-for="seat in selectedSeats" :key="seat.number" class="passenger-info">
-                            <p><strong>Ghế {{ seat.number }}</strong></p>
-                            <span>Loại vé: {{ passengerInfos[seat.number].ticketType }}</span>
+                <!-- Thông tin hành khách -->
+                <div class="card shadow-sm border-0 p-4 mb-4">
+                    <h5 class="text-primary mb-4">👥 Thông tin hành khách</h5>
 
-                            <p><strong>Họ tên:</strong> {{ passengerInfos[seat.number].fullName }}</p>
-                            <p><strong>Ngày sinh:</strong> {{ passengerInfos[seat.number].dateOfBirth }}</p>
-                            <p><strong>Giới tính:</strong> {{ passengerInfos[seat.number].gender }}</p>
-                            <p><strong>Quốc tịch:</strong> {{ passengerInfos[seat.number].nationality }}</p>
-                            <p><strong>CCCD:</strong> {{ passengerInfos[seat.number].personalCode }}</p>
-                            <p><strong>Loại hành khách:</strong> {{ getPassengerType(seat.number) }}</p>
-                            <p><strong>Giá tiền:</strong> {{ passengerInfos[seat.number].price }}</p>
+                    <div v-for="seat in selectedSeats" :key="seat.number"
+                        class="passenger-info mb-4 p-3 rounded shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Ghế {{ seat.number }} ({{ passengerInfos[seat.number].ticketType }})</h6>
+                            <span class="badge bg-secondary">{{ getPassengerType(seat.number) }}</span>
+                        </div>
 
-
-
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Họ tên:</strong> {{ passengerInfos[seat.number].fullName }}</p>
+                                <p><strong>Ngày sinh:</strong> {{ passengerInfos[seat.number].dateOfBirth }}</p>
+                                <p><strong>Giới tính:</strong> {{ passengerInfos[seat.number].gender }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Quốc tịch:</strong> {{ passengerInfos[seat.number].nationality }}</p>
+                                <p><strong>CCCD:</strong> {{ passengerInfos[seat.number].personalCode }}</p>
+                                <p><strong>💵 Giá tiền:</strong> {{ passengerInfos[seat.number].price.toLocaleString()
+                                    }} VNĐ</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            <!-- Thông tin tổng cộng và nút xác nhận -->
+            <!-- Xác nhận đặt vé -->
             <div class="col-md-4">
-                <div class="card shadow-sm border-0 p-4 mb-3">
-                    <h4 class="card-title text-primary text-center">Xác nhận thông tin</h4>
-                    <p v-if="adultCount > 0"><strong>Số lượng người lớn:</strong> {{ adultCount }}</p>
-                    <p v-if="childCount > 0"><strong>Số lượng trẻ em:</strong> {{ childCount }}</p>
-                    <p v-if="infantCount > 0"><strong>Số lượng em bé:</strong> {{ infantCount }}</p>
-                    <p><strong>Số lượng vé Economy:</strong> {{ getTicketCount('economy') }}</p>
-                    <p><strong>Số lượng vé Business:</strong> {{ getTicketCount('business') }}</p>
-                    <p class="text-center"><strong class="highlight-total">Tổng tiền:</strong> {{
-                        totalAmount.toLocaleString() }} VNĐ</p>
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-outline-primary btn-lg" @click="goBack">Quay lại</button>
-                        <button class="btn btn-success btn-lg" @click="confirmBooking">Xác nhận</button>
+                <div class="card summary-card shadow-lg border-0 p-4">
+                    <h4 class="text-center text-primary mb-4">🧾 Xác nhận thông tin</h4>
+                    <div class="mb-3">
+                        <p v-if="adultCount > 0"><strong>👨 Người lớn:</strong> {{ adultCount }}</p>
+                        <p v-if="childCount > 0"><strong>🧒 Trẻ em:</strong> {{ childCount }}</p>
+                        <p v-if="infantCount > 0"><strong>👶 Em bé:</strong> {{ infantCount }}</p>
+                        <p><strong>💺 Vé Economy:</strong> {{ getTicketCount('economy') }}</p>
+                        <p><strong>💼 Vé Business:</strong> {{ getTicketCount('business') }}</p>
+                    </div>
+                    <hr />
+                    <p class="text-center fs-5 mb-4">
+                        <strong class="text-dark">Tổng tiền:</strong>
+                        <span class="text-success">{{ totalAmount.toLocaleString() }} VNĐ</span>
+                    </p>
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-secondary btn-lg px-4" @click="goBack">← Quay lại</button>
+                        <button class="btn btn-primary btn-lg px-4" @click="confirmBooking">✅ Xác nhận</button>
                     </div>
                 </div>
             </div>
-
+        </div>
+    </div>
+    <div class="container-fluid mt-4 px-4">
+        <div class="row gy-4">
+            <div class="col-md-12">
+                <h5 class="text-primary mb-3">📝 Ghi chú</h5>
+                <p>1. Vui lòng kiểm tra kỹ thông tin trước khi xác nhận đặt vé.</p>
+                <p>2. Nếu có bất kỳ thay đổi nào về thông tin hành khách, vui lòng liên hệ với chúng tôi.</p>
+                <p>3. Chúng tôi cam kết bảo mật thông tin cá nhân của bạn.</p>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import api from '../../services/api'
+const savedParams = JSON.parse(localStorage.getItem('searchParams'));
 
 export default {
     data() {
@@ -86,6 +111,8 @@ export default {
             adultCount: 0,
             childCount: 0,
             infantCount: 0,
+            routeLabel: '',
+
         };
     },
     methods: {
@@ -128,7 +155,9 @@ export default {
                 const response = await api.post('/payment/pay', paymentPayload);
                 localStorage.setItem('flight', JSON.stringify(this.flight));
                 localStorage.setItem('totalAmount', this.totalAmount.toString());
-
+                localStorage.setItem('passengerInfos', JSON.stringify(this.passengerInfos));
+                localStorage.setItem('selectedSeats', JSON.stringify(this.selectedSeats));
+               
                 if (response.data && response.data.data) {
                     window.location.href = response.data.data;
                 } else {
@@ -178,6 +207,10 @@ export default {
 
         // console.log("Selected Seats:", selectedSeats);
         console.log("Passenger Infos:", this.passengerInfos);
+        const savedParams = JSON.parse(localStorage.getItem('searchParams'));
+        if (savedParams?.routeDisplay) {
+            this.routeLabel = savedParams.routeDisplay;
+        }
 
     }
     ,
@@ -258,5 +291,34 @@ export default {
     background-color: #f8f9fa;
     padding: 5px 10px;
     border-radius: 5px;
+}
+
+.flight-card ul {
+    line-height: 1.7;
+}
+
+.summary-card p {
+    margin-bottom: 8px;
+}
+
+.summary-card .fs-5 {
+    font-weight: 600;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.passenger-info {
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.passenger-info {
+    width: 48%;
+    /* Chiếm 50% chiều rộng của phần tử cha */
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm thay đổi tổng chiều rộng */
 }
 </style>
