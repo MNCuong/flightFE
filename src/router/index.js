@@ -3,7 +3,8 @@ import { jwtDecode } from 'jwt-decode';
 
 // Import Layouts
 
-import AppLayout from '@/views/App.vue';
+import App from '@/views/App.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 // Import Customer Views
 import Home from '@/views/Customer/Home.vue';
 import About from '@/views/Customer/About.vue';
@@ -21,6 +22,8 @@ import SearchFlight from '@/views/Customer/SearchFlight.vue';
 import FlightDetails from '@/views/Customer/FlightDetails.vue';
 import BookingConfirm from '@/views/Customer/BookingConfirm.vue';
 import ThankYou from '@/views/Customer/ThankYouPage.vue'
+import UserInfo from '@/views/Customer/UserInfo.vue'
+import Verify from '@/views/Verify.vue'
 
 // import FlightTicketDetails from '@/views/Customer/FlightTicketDetails.vue';
 import path from 'path';
@@ -46,6 +49,9 @@ const routes = [
       { path: 'flight-details/:id', component: FlightDetails, name: 'flight-details' },
       { path: 'booking-confirm/:id', component: BookingConfirm, name: 'booking-confirm' },
       { path: 'thank-you', component: ThankYou, name: 'thank-you' },
+      { path: 'user-info', component: UserInfo, name: 'user-info' },
+      { path: 'verify', component: Verify, name: 'verify' },
+
 
     ]
 

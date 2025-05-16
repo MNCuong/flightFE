@@ -4,11 +4,11 @@
     <div class="container">
       <div class="row d-flex align-items-center justify-content-center">
         <div class="about-content col-lg-12">
-          <h1 class="text-white">Giới thiệu</h1>
+          <h1 class="text-white">Tìm kiếm</h1>
           <p class="text-white link-nav">
             <a href="/">Trang chủ</a>
-            <span class="lnr lnr-arrow-right"></span>
-            <a href="/about">Giới thiệu</a>
+<!--            <span class="lnr lnr-arrow-right"></span>-->
+<!--            <a href="/search">Tìm kiếm</a>-->
           </p>
         </div>
       </div>
@@ -23,15 +23,15 @@
           <form class="form-wrap" @submit.prevent="searchFlight">
             <select class="form-control" v-model="departure" @blur="updatePlaceholder" @focus="clearPlaceholder">
               <option value="" disabled selected>Nơi đi</option>
-              <option v-for="location in locations" :key="location.code" :value="location.code">
-                {{ location.name }}
+              <option v-for="location in locations" :key="location" :value="location">
+                {{ location }}
               </option>
             </select>
 
             <select class="form-control" v-model="arrival" @blur="updatePlaceholder" @focus="clearPlaceholder">
               <option value="" disabled selected>Nơi đến</option>
-              <option v-for="location in locations" :key="location.code" :value="location.code">
-                {{ location.name }}
+              <option v-for="location in locations" :key="location" :value="location">
+                {{ location }}
               </option>
             </select>
 
@@ -87,49 +87,85 @@ import { ref, watch, onMounted,computed } from 'vue';
 import axios from '../../services/api.js';
 import { useRoute, useRouter } from 'vue-router';
 
-const route = useRoute(); // Để lấy các query params từ URL
-const router = useRouter(); // Để lấy các query params từ URL
+const route = useRoute();
+const router = useRouter();
 
-// Các tham số cần thiết cho việc tìm kiếm
-const departure = ref(route.query.departure || ''); // Lấy giá trị từ query param hoặc mặc định rỗng
+const departure = ref(route.query.departure || '');
 const arrival = ref(route.query.arrival || '');
 const startDate = ref(route.query.startDate || '');
 
 const flights = ref([]);
-const locations = ref([
-  { name: "Hà Nội", code: "HAN" },
-  { name: "TP.HCM", code: "SGN" },
-  { name: "Đà Nẵng", code: "DAD" },
-  { name: "Nha Trang", code: "CXR" },
-  { name: "Phú Quốc", code: "PQC" },
-  { name: "Hải Phòng", code: "HPH" },
-  { name: "Quy Nhơn", code: "UIH" },
-  { name: "Cần Thơ", code: "VCA" },
-  { name: "Vinh", code: "VII" },
-  { name: "Thanh Hóa", code: "THD" },
-]);
+const locations = ref([]);
 
-// Hàm gọi API để tìm chuyến bay
 const searchFlight = async () => {
   console.log("Tìm kiếm chuyến bay...");
+  // if (hasError.value) {
+  //   return;
+  // }
+
   try {
+    // if (departure.value === arrival.value || arrival.value === departure.value) {
+    //   errorModal.value.openModal('Không thể chọn nơi đi và nơi đến giống nhau!');
+    //   hasError.value = true;
+    //   return;
+    // }
     if (!departure.value || !arrival.value || !startDate.value) {
       console.error("Thiếu thông tin để tìm kiếm");
       return;
     }
+
+    // // Gọi API tìm chuyến bay
+    // const response = await axios.get('/flights/search-flight', {
+    //   params: {
+    //     departure: departure.value,
+    //     arrival: arrival.value,
+    //     date: startDate.value
+    //   }
+    // });
+
+    const matchedDeparture =  departure.value ;
+    const matchedArrival = arrival.value;
+
+    const routeDisplay = `${matchedDeparture} → ${matchedArrival}`;
+
 
     // Gọi API tìm chuyến bay
     const response = await axios.get('/flights/search-flight', {
       params: {
         departure: departure.value,
         arrival: arrival.value,
-        date: startDate.value
+        date: startDate.value,
+        page: currentPage.value - 1,
+        size: pageSize,
       }
     });
 
-    flights.value = response.data.data || [];
+    const responseFlights = response.data.data?.content || [];
+    flights.value = responseFlights.map(flight => ({
+      ...flight,
+      routeDisplay
+    }));
+
+    console.log(responseFlights);
+    const searchParams = {departure: departure.value, arrival: arrival.value, routeDisplay};
+    console.log(searchParams);
+    localStorage.setItem('searchParams', JSON.stringify(searchParams));
+    updateStartDateInURL();
+
   } catch (error) {
     console.error('Lỗi khi gọi API:', error);
+  }
+};
+const fetchAirports = async () => {
+  try {
+    const response = await axios.get('/airport-info/list');
+    if (response.data && response.data.data) {
+      locations.value = response.data.data;
+      locations.value = response.data.data.map(item => item.city);
+      console.log("abc", response.data.data);
+    }
+  } catch (error) {
+    console.error('Lỗi khi gọi API lấy sân bay:', error);
   }
 };
 const updateStartDateInURL = () => {
@@ -142,55 +178,31 @@ const updateStartDateInURL = () => {
     }
   });
 };
-// Theo dõi sự thay đổi của ngày khởi hành
-watch(startDate, () => {
-  updateStartDateInURL(); // Cập nhật URL khi ngày khởi hành thay đổi
-});
 
-// Gọi API chỉ lần đầu khi trang load
+
 onMounted(() => {
   if (departure.value && arrival.value && startDate.value) {
-  searchFlight();
-}
+    searchFlight();
+  }
+  fetchAirports();
 
 });
 
 
-// Định dạng thời gian cho chuyến bay
-const formatTime = (datetime) => {
-  return new Date(datetime).toLocaleTimeString('vi-VN', {
+function formatTime(dateTime) {
+  return new Date(dateTime).toLocaleString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
   });
-};
-
-const flightsPerPage = 5;
-const currentPage = ref(1);
-
-const paginatedFlights = computed(() => {
-  const start = (currentPage.value - 1) * flightsPerPage;
-  const end = start + flightsPerPage;
-  return flights.value.slice(start, end);
-});
-
-const totalPages = computed(() => {
-  return Math.ceil(flights.value.length / flightsPerPage);
-});
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
-};
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-};
-
+}
+function formatCurrency(value) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
 const bookFlight = (flight) => {
-  router.push({ name: 'flight-details', params: { id: flight.id } });
+  router.push({name: 'flight-details', params: {id: flight.id}});
 };
 
 </script>
