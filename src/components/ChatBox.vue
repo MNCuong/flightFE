@@ -112,6 +112,7 @@ export default {
           });
         }
       } catch (e) {
+        this.messages.push({ sender: 'bot', text: 'Không thể kết nối tới máy chủ', time: timeString });
         this.error = 'Lỗi kết nối API.';
       } finally {
         this.loading = false;

@@ -3,11 +3,10 @@ import App from './views/App.vue'
 import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@/assets/css/main.css'
-//
+import '@mdi/font/css/materialdesignicons.css'
 import '@/assets/css/bootstrap/bootstrap.css'
 import '@/assets/css/bootstrap/bootstrap-grid.css'
 import '@/assets/css/bootstrap/bootstrap-reboot.css'
-//
 import '@/assets/css/animate.min.css'
 import '@/assets/css/font-awesome.min.css'
 import '@/assets/css/jquery-ui.css'

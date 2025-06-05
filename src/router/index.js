@@ -24,11 +24,18 @@ import BookingConfirm from '@/views/Customer/BookingConfirm.vue';
 import ThankYou from '@/views/Customer/ThankYouPage.vue'
 import UserInfo from '@/views/Customer/UserInfo.vue'
 import Verify from '@/views/Verify.vue'
+import CustomerSupportChat from "@/views/Customer/CustomerSupportChat.vue";
+import RoundTripBooking from "@/views/Customer/RoundTripBooking.vue";
+import PassengerInfo from "@/views/Customer/PassengerInfo.vue";
+import Test from "@/views/test.vue"
+import nhap from "@/views/Customer/nhap.vue"
 
 // import FlightTicketDetails from '@/views/Customer/FlightTicketDetails.vue';
 import path from 'path';
+import AuthLayout from '@/layouts/AuthLayout.vue';
+
 const routes = [
-  // Customer routes
+  // Layout chính cho người dùng
   {
     path: '/',
     component: AppLayout,
@@ -44,24 +51,30 @@ const routes = [
       { path: 'elements', component: Elements },
       { path: 'flight-ticket-list', component: FlightTicketList },
       { path: 'search-flight', component: SearchFlight, name: 'search-flight' },
-      { path: 'login', component: Login },
-      { path: 'register', component: Register },
       { path: 'flight-details/:id', component: FlightDetails, name: 'flight-details' },
       { path: 'booking-confirm/:id', component: BookingConfirm, name: 'booking-confirm' },
       { path: 'thank-you', component: ThankYou, name: 'thank-you' },
       { path: 'user-info', component: UserInfo, name: 'user-info' },
       { path: 'verify', component: Verify, name: 'verify' },
-
-
+      { path: 'customer-support-chat', component: CustomerSupportChat, name: 'customer-support-chat' },
+      { path: 'round-trip-booking', component: RoundTripBooking, name: 'round-trip-booking' },
+      { path: 'passenger-info', component: PassengerInfo, name: 'passenger-info' },
+      { path: 'test', component: Test, name: 'test' },
+      { path: 'show-info', component: nhap, name: 'nhap' },
     ]
-
-
   },
 
-  // Login (outside admin)
-
-
+  // Layout riêng cho Login/Register
+  {
+    path: '/',
+    component: AuthLayout,
+    children: [
+      { path: 'login', component: Login },
+      { path: 'register', component: Register },
+    ]
+  }
 ];
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
