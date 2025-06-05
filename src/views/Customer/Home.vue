@@ -23,94 +23,75 @@
         <div class="col-lg-4 col-md-6 banner-right">
           <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
-              <a aria-controls="flight" aria-selected="true"
-                 class="nav-link active" data-toggle="tab" href="#flight"
-                 id="flight-tab" role="tab">
-                Flights
+              <a class="nav-link active"
+                 id="flight-tab"
+                 data-toggle="tab"
+                 href="#flight"
+                 role="tab"
+                 aria-controls="flight"
+                 aria-selected="true"
+                 @click="tripType = 'oneWay'"
+              >
+                Một chiều
               </a>
             </li>
             <li class="nav-item">
-              <a aria-controls="hotel" aria-selected="false" class="nav-link"
-                 data-toggle="tab" href="#hotel" id="hotel-tab"
-                 role="tab">
-                Hotels
+              <a class="nav-link"
+                 id="roundTrip-tab"
+                 data-toggle="tab"
+                 href="#roundTrip"
+                 role="tab"
+                 aria-controls="roundTrip"
+                 aria-selected="false"
+                 @click="tripType = 'roundTrip'"
+              >
+                Khứ hồi
               </a>
             </li>
-            <!--            <li class="nav-item">-->
-            <!--              <a aria-controls="holiday" aria-selected="false"-->
-            <!--                 class="nav-link" data-toggle="tab" href="#holiday"-->
-            <!--                 id="holiday-tab" role="tab">-->
-            <!--                Holidays-->
-            <!--              </a>-->
-            <!--            </li>-->
           </ul>
           <div class="tab-content" id="myTabContent">
-            <div aria-labelledby="flight-tab" class="tab-pane fade show active" id="flight" role="tabpanel">
-              <form class="form-wrap" @submit.prevent="searchFlight"> <!-- Ngăn reload khi submit -->
-                <select class="form-control" name="departure" v-model="departure" @blur="updatePlaceholder" @focus="clearPlaceholder">
-                  <option value="" disabled >Nơi đi</option>
-                  <option v-for="location in locations" :label="location.city" :value="location.city">{{
-                      location.name
-                    }}
-                  </option>
-                </select>
+            <form class="form-wrap space-y-4" @submit.prevent="searchFlight">
+              <select v-model="departure" class="form-control rounded-md border p-2">
+                <option value="" disabled>Nơi đi</option>
+                <option v-for="location in locations" :key="location.code" :value="location.city">
+                  {{ location.city }}
+                </option>
+              </select>
 
-                <select class="form-control" name="arrival" v-model="arrival" @blur="updatePlaceholder" @focus="clearPlaceholder">
-                  <option value="" disabled >Nơi đến</option>
-                  <option v-for="location in locations" :label="location.city" :value="location.city">{{
-                      location.name
-                    }}
-                  </option>
-                </select>
+              <select v-model="arrival" class="form-control rounded-md border p-2">
+                <option value="" disabled>Nơi đến</option>
+                <option v-for="location in locations" :key="location.code" :value="location.city">
+                  {{ location.city }}
+                </option>
+              </select>
 
-                <input class="form-control"
-                       name="start"
-                       v-model="startDate"
-                       @blur="updatePlaceholder"
-                       @focus="clearPlaceholder"
-                       placeholder="Ngày khởi hành"
-                       type="date"/>
-                <!--                <Datepicker v-model="startDate" placeholder="Ngày khởi hành" :format="'yyyy-MM-dd'" class="form-control"/>-->
+              <Datepicker
+                  v-if="tripType === 'roundTrip'"
+                  v-model="dateRange"
+                  :range="true"
+                  placeholder="Chọn ngày đi và ngày về"
+                  :multi-calendars="true"
+                  :columns="2"
+                  :format="'dd/MM/yyyy'"
+              />
 
-                <button type="submit" class="primary-btn text-uppercase"> <!-- Sử dụng type="submit" -->
-                  Tìm kiếm chuyến bay
-                </button>
-              </form>
-            </div>
-<!--            <div aria-labelledby="hotel-tab" class="tab-pane fade" id="hotel"-->
-<!--                 role="tabpanel">-->
-<!--              <form class="form-wrap">-->
-<!--                <input class="form-control" name="name"-->
-<!--                       onblur="this.placeholder = 'From '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="From " type="text"/>-->
-<!--                <input class="form-control" name="to"-->
-<!--                       onblur="this.placeholder = 'To '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="To " type="text"/>-->
-<!--                <input class="form-control date-picker" name="start"-->
-<!--                       onblur="this.placeholder = 'Start '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="Start " type="text"/>-->
-<!--                <input class="form-control date-picker" name="return"-->
-<!--                       onblur="this.placeholder = 'Return '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="Return " type="text"/>-->
-<!--                <input class="form-control" max="20" min="1"-->
-<!--                       name="adults"-->
-<!--                       onblur="this.placeholder = 'Adults '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="Adults " type="number"/>-->
-<!--                <input class="form-control" max="20" min="1"-->
-<!--                       name="child"-->
-<!--                       onblur="this.placeholder = 'Child '"-->
-<!--                       onfocus="this.placeholder = ''"-->
-<!--                       placeholder="Child " type="number"/>-->
-<!--                <a class="primary-btn text-uppercase" href="#">-->
-<!--                  Search Hotels-->
-<!--                </a>-->
-<!--              </form>-->
-<!--            </div>-->
+              <Datepicker
+                  v-else
+                  v-model="startDate"
+                  placeholder="Ngày khởi hành"
+                  :format="'dd/MM/yyyy'"
+              />
+              <input
+                  v-if="tripType === 'roundTrip'"
+                  class="form-control"
+                  v-model="passengerNumber"
+                  type="text"
+                  placeholder="Số hành khách"
+              />
+              <button type="submit" class="primary-btn text-uppercase">
+                Tìm kiếm chuyến bay
+              </button>
+            </form>
 
           </div>
         </div>
@@ -896,66 +877,93 @@
 </template>
 
 
-<script>
-import axios from '../../services/api.js';
-export default {
-  data() {
-    return {
-      departure: '',
-      arrival: '',
-      startDate: '',
-      locations: [],
-      page: 0,
-      size: 10
+<script setup>
+import {ref, onMounted, watch} from 'vue'
+import {useRouter} from 'vue-router'
+import axios from '../../services/api.js'
+import Datepicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
-    };
-  },
-  methods: {
-    searchFlight() {
-      this.$router.push({
-        name: 'search-flight',
-        query: {
-          departure: this.departure,
-          arrival: this.arrival,
-          startDate: this.startDate,
-          page:this.page,
-          size:this.size
-        }
-      });
-    },
+const router = useRouter()
 
-    updatePlaceholder(event) {
-      if (event.target.name === 'departure') {
-        event.target.placeholder = 'Nơi đi';
-      } else if (event.target.name === 'arrival') {
-        event.target.placeholder = 'Nơi đến';
-      } else if (event.target.name === 'start') {
-        event.target.placeholder = 'Ngày khởi hành';
-      }
-    },
+const tripType = ref('oneWay')
+const departure = ref('')
+const arrival = ref('')
+const startDate = ref('')
+const returnDate = ref('')
+const passengerNumber = ref('')
+const locations = ref([])
+const page = ref(0)
+const size = ref(10)
 
+const today = new Date();
+const dateRange = ref([today, today]);
 
-    clearPlaceholder(event)
-      {
-        event.target.placeholder = '';
-      }
-    },
+function formatDateToDMY(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}-${month}-${year}`
+}
 
-  mounted() {
-    axios.get('/airport-info/list')
-        .then(response => {
-          this.locations = response.data.data;
-          console.log("abc",this.locations);
-          const cities = this.locations.map(location => location.city);
-          const code = this.locations.map(location => location.code);
-          console.log("Cities:", cities);
-          console.log("Cities:", this.locations.code);
-        })
-        .catch(error => {
-          console.error('Lỗi khi lấy dữ liệu sân bay:', error);
-        });
+const searchFlight = () => {
+  const query = {
+    departure: departure.value,
+    arrival: arrival.value,
+    tripType: tripType.value,
+    page: page.value,
+    size: size.value,
   }
-  };
+
+  const [start, end] = dateRange.value
+
+  if (tripType.value === 'roundTrip') {
+    if (start && end) {
+      console.log("thanh cong");
+      query.dateRange = JSON.stringify([
+        start.toISOString(),
+        end.toISOString(),
+      ])
+      query.passengerNumber= passengerNumber.value
+    }
+    console.log("tha bai");
+
+  } else {
+    if (startDate.value) {
+      query.startDate = startDate.value
+    }
+  }
+
+  console.log('startDate:', dateRange.value);
+  console.log('returnDate:', dateRange.value);
+  // return;
+
+  router.push({
+    name: 'search-flight',
+    query
+  })
+}
+const token=localStorage.getItem('token')
+
+onMounted(async () => {
+    console.log('Không có token! Không gọi API.', token)
+
+
+
+  try {
+    const response = await axios.get('/airport-info/list')
+    locations.value = response.data.data
+    console.log('Danh sách sân bay1:', locations.value)
+  } catch (error) {
+    console.error('Lỗi khi gọi API:', error)
+  }
+})
+watch(dateRange, ([start, end]) => {
+  startDate.value = start;
+  returnDate.value = end;
+});
 
 </script>
 <style scoped>
