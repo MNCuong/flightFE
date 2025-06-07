@@ -65,9 +65,11 @@ export default {
       this.$router.push('/');
     },
     startCountdown() {
+      console.log('Bắt đầu đếm ngược');
       this.countdownInterval = setInterval(() => {
         if (this.countdown > 0) {
           this.countdown--;
+          console.log('Countdown: ', this.countdown);
         } else {
           clearInterval(this.countdownInterval);
           this.$router.push('/flight-ticket-list');
@@ -99,11 +101,11 @@ export default {
 
   async mounted() {
     const query = this.$route.query;
-    console.log("response:0000 ", query);
     this.responseCode = query.vnp_ResponseCode;
-    console.log('Response Code:', this.responseCode);
     try {
-      this.bookingData = JSON.parse(localStorage.getItem('bookingData') || '[]');
+      this.bookingData = JSON.parse(localStorage.getItem('bookingData'));
+      console.log('1234:', this.bookingData);
+
     } catch (error) {
       console.error('Lỗi khi parse bookingData:', error);
       this.bookingData = [];
@@ -111,58 +113,42 @@ export default {
 
     try {
       this.paymentPayload = JSON.parse(localStorage.getItem('paymentPayload') || '[]');
+      console.log('1234:', this.paymentPayload);
+
     } catch (error) {
       console.error('Lỗi khi parse paymentPayload:', error);
       this.paymentPayload = [];
     }
 
-    console.log('paymentPayload:', JSON.stringify(this.paymentPayload, null, 2));
-    console.log('bookingData:', JSON.stringify(this.bookingData, null, 2));
-    console.log('bookingData:', this.responseCode);
+    // console.log('paymentPayload:', JSON.stringify(this.paymentPayload, null, 2));
+    // console.log('bookingData:', JSON.stringify(this.bookingData, null, 2));
 
     if (this.responseCode === '00' || this.responseCode === '200') {
       this.success = true;
-      this.startCountdown();
+      console.log('bookingDataaádasdsad:', this.bookingData);
 
-      const selectedSeats = JSON.parse(localStorage.getItem('selectedSeats') || '[]');
-      console.log('paymentPayload:', this.paymentPayload);
-      console.log('bookingDataada:', this.bookingData);
-      const passengers = this.bookingData.map(info => {
-        return {
-          ...info,
-          passenger: {
-            ...info.passenger,
-            gender: info.passenger.gender === "Nam"
-          }
-        };
-      });
       this.bookingDataRequest = {
+        departureFlightId:this.bookingData.departureFlightId,
+        departureSeats:this.bookingData.departureSeats,
+        returnFlightId:this.bookingData.returnFlightId,
+        returnSeats:this.bookingData.returnSeats,
         flightId: this.paymentPayload.bookingId,
-        passengerInfos: this.bookingData,
-        selectedSeats: selectedSeats,
+        passengerInfos: this.bookingData.passengers,
         totalAmount: parseInt(query.vnp_Amount)/1000,
         transactionNo: query.vnp_TransactionNo,
         paymentStatus: 'Success',
       };
-
       const params = new URLSearchParams(window.location.search);
       let paymentData = {};
       params.forEach((value, key) => {
         paymentData[key] = value;
       });
-      console.log('paymentData:', paymentData);
 
       try {
         await this.savePaymentData(paymentData);
-        localStorage.removeItem('flight');
-        localStorage.removeItem('totalAmount');
-        localStorage.removeItem('paymentPayload');
-        localStorage.removeItem('selectedSeats');
-        localStorage.removeItem('bookingData');
-
-        console.log('bookingDataRequest:', this.bookingDataRequest);
-
         await this.saveBookingInformation();
+        this.startCountdown();
+
 
       } catch (error) {
         console.error('Lỗi trong quá trình lưu dữ liệu:', error);

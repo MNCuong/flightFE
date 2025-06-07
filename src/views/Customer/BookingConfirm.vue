@@ -22,9 +22,9 @@
         <div class="card flight-card shadow-lg border-0 p-4 mb-4">
           <h5 class="card-title text-primary mb-3">✈️ Thông tin chuyến bay</h5>
           <ul class="list-unstyled mb-0">
-            <li><strong>Hãng bay:</strong> {{ flight.airline?.name }} - {{ flight.flightDetails?.number }}
+            <li><strong>Hãng bay:</strong> {{ flight.airlineName }} - {{ flight.flightCode }}
             </li>
-            <li><strong>Tuyến bay:</strong> {{ routeLabel }}</li>
+            <li><strong>Tuyến bay:</strong> {{ flight.departureAirport }} - {{ flight.arrivalAirport }}</li>
             <li><strong>🕓 Giờ đi:</strong> {{ formatTime(flight.departureTime) }}</li>
             <li><strong>🕘 Giờ đến:</strong> {{ formatTime(flight.arrivalTime) }}</li>
             <li><strong>💺 Giá Economy:</strong> {{ flight.priceEconomy?.toLocaleString() }} VNĐ</li>
@@ -32,32 +32,35 @@
           </ul>
         </div>
 
-        <!-- Thông tin hành khách -->
         <div class="card shadow-sm border-0 p-4 mb-4">
           <h5 class="text-primary mb-4">👥 Thông tin hành khách</h5>
 
-          <div v-for="item in bookingData" :key="item.passenger.number"
-               class="passenger-info mb-4 p-3 rounded shadow-sm">
+          <div
+              v-for="(passenger, index) in bookingData.passengers"
+              :key="index"
+              class="passenger-info mb-4 p-3 rounded shadow-sm border"
+          >
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Ghế {{ item.passenger.number }}</h6>
-              <span class="badge bg-secondary">{{ getPassengerType(item.passenger) }}</span>
+              <h6 class="mb-0">Hành khách {{ index + 1 }} (Ghế {{ bookingData.departureSeats[index] }})</h6>
+              <span class="badge bg-secondary">{{ getPassengerType(passenger) }}</span>
             </div>
 
             <div class="row">
               <div class="col-md-6">
-                <p><strong>Họ tên:</strong> {{ item.passenger.fullName }}</p>
-                <p><strong>Ngày sinh:</strong> {{ item.passenger.birthDate }}</p>
-                <p><strong>Giới tính:</strong> {{ item.passenger.gender === 0 ? 'Nữ' : 'Nam' }}</p>
+                <p><strong>Họ tên:</strong> {{ passenger.name }}</p>
+                <p><strong>Ngày sinh:</strong> {{ formatDate(passenger.dateOfBirth) }}</p>
+                <p><strong>Giới tính:</strong> {{ passenger.gender === '0' ? 'Nữ' : 'Nam' }}</p>
               </div>
               <div class="col-md-6">
-                <p><strong>Quốc tịch:</strong> {{ item.passenger.nationality }}</p>
-                <p><strong>CCCD:</strong> {{ item.passenger.nationalId }}</p>
-                <p><strong>💵 Giá tiền:</strong> {{ item.price.toLocaleString() }} VNĐ</p>
+                <p><strong>Quốc tịch:</strong> {{ passenger.nationality }}</p>
+                <p><strong>CCCD:</strong> {{ passenger.nationalId || 'Không có' }}</p>
+                <p v-if="passenger.isInternational"><strong>Hộ chiếu:</strong> {{ passenger.passportNumber }}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
+
 
       <!-- Xác nhận đặt vé -->
       <div class="col-md-4">
@@ -69,13 +72,14 @@
             <p v-if="infantCount > 0"><strong>👶 Em bé:</strong> {{ infantCount }}</p>
             <p><strong>💼 Vé Business:</strong> {{ businessTicketCount }}</p>
             <p><strong>💺 Vé Economy:</strong> {{ economyTicketCount }}</p>
-            <p><strong>💰 Tổng tiền:</strong> {{ totalAmount.toLocaleString() }} VNĐ</p>
+
+            <p><strong>💰 Tổng tiền:</strong> {{ totalAmountFunction.toLocaleString() }} VNĐ</p>
 
           </div>
           <hr/>
           <p class="text-center fs-5 mb-4">
-            <strong class="text-dark">Tổng tiền:</strong>
-            <span class="text-success">{{ totalAmount.toLocaleString() }} VNĐ</span>
+            <strong class="text-dark">Tổng tiền: </strong>
+            <span class="text-success">{{ totalAmountFunction.toLocaleString() }} VNĐ</span>
           </p>
           <div class="d-flex justify-content-between">
             <button class="btn btn-outline-secondary btn-lg px-4" @click="goBack">← Quay lại</button>
@@ -119,37 +123,33 @@ export default {
   },
   computed: {
     businessTicketCount() {
-      return this.bookingData.filter(item => item.type?.toLowerCase() === 'business').length;
+      if (!this.bookingData || !Array.isArray(this.bookingData.departureSeats)) return 0;
+
+      return this.bookingData.departureSeats.filter(seat => {
+        const row = parseInt(seat.match(/\d+/)[0]);
+        return row >= 1 && row <= 5;
+      }).length;
     },
 
     economyTicketCount() {
-      return this.bookingData.filter(item => item.type?.toLowerCase() === 'economy' || item.type?.toLowerCase() === 'economy').length;
-    },
+      if (!this.bookingData || !Array.isArray(this.bookingData.departureSeats)) return 0;
 
-    adultCount() {
-      return this.bookingData.reduce((count, item) => {
-        const age = this.getAge(item.passenger.birthDate);
-        return age >= 18 ? count + 1 : count;
-      }, 0);
+      return this.bookingData.departureSeats.filter(seat => {
+        const row = parseInt(seat.match(/\d+/)[0]);
+        return row >= 6;
+      }).length;
     },
-    childCount() {
-      return this.bookingData.reduce((count, item) => {
-        const age = this.getAge(item.passenger.birthDate);
-        return age >= 2 && age < 18 ? count + 1 : count;
-      }, 0);
-    },
-    infantCount() {
-      return this.bookingData.reduce((count, item) => {
-        const age = this.getAge(item.passenger.birthDate);
-        return age < 2 ? count + 1 : count;
-      }, 0);
-    },
-    totalAmount() {
-      this.totalAmount = this.bookingData.reduce((sum, item) => sum + (item.price || 0), 0);
-      return this.bookingData.reduce((sum, item) => sum + (item.price || 0), 0);
+    totalAmountFunction() {
+      this.totalAmount = this.businessTicketCount * this.flight.priceBusiness + this.economyTicketCount * this.flight.priceEconomy
+      return this.totalAmount;
     }
   },
   methods: {
+    formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('vi-VN');
+    },
     async fetchFlightDetails() {
       try {
         const response = await api.get(`/flights/flight/${this.$route.params.id}`)
@@ -170,29 +170,21 @@ export default {
     goBack() {
       this.$router.push(`/flight-details/${this.$route.params.id}`);
     },
-    // calculateTotalAmount() {
-    //     let economyCount = this.getTicketCount('economy')
-    //     let businessCount = this.getTicketCount('business')
-
-    //     this.totalAmount = (economyCount * this.flight.priceEconomy) +
-    //         (businessCount * this.flight.priceBusiness)
-    // },
     async confirmBooking() {
       try {
         const paymentPayload = {
-          amount_raw: this.totalAmount.toString(),
+          amount_raw: this.totalAmount,
           bankCode: '',
-          bookingId: this.flight.id.toString(),
+          bookingId: [this.flight.id.toString()],
           typeService: 'PLANE',
         };
         console.log("abc: ", paymentPayload);
 
         const response = await api.post('/payment/pay', paymentPayload);
-        localStorage.setItem('bookingData', JSON.stringify(this.bookingData));
+        localStorage.setItem('bookingData',JSON.stringify(this.bookingData));
         localStorage.setItem('paymentPayload', JSON.stringify(paymentPayload));
         console.log('bookingData:', JSON.stringify(this.bookingData));
         console.log('paymentPayload:', JSON.stringify(paymentPayload));
-
         if (response.data && response.data.data) {
           window.location.href = response.data.data;
         } else {
@@ -202,13 +194,6 @@ export default {
         console.error('Lỗi khi gọi thanh toán:', error);
         alert('Thanh toán thất bại. Vui lòng thử lại.');
       }
-    },
-    getTicketCount(ticketType) {
-      return this.selectedSeats.filter(seat => {
-        const type = seat.type?.toLowerCase()
-        return (ticketType === 'economy' && type === 'economy') ||
-            (ticketType === 'business' && type === 'business')
-      }).length
     },
 
     calculatePassengerTypes() {
@@ -228,9 +213,9 @@ export default {
       });
     },
     getPassengerType(passenger) {
-      if (!passenger || !passenger.birthDate) return '';
-      const birthDate = new Date(passenger.birthDate);
-      const ageDifMs = Date.now() - birthDate.getTime();
+      if (!passenger || !passenger.dateOfBirth) return '';
+      const dateOfBirth = new Date(passenger.dateOfBirth);
+      const ageDifMs = Date.now() - dateOfBirth.getTime();
       const ageDate = new Date(ageDifMs);
       const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
@@ -238,26 +223,17 @@ export default {
       else if (age >= 2) return 'Trẻ em';
       else return 'Em bé';
     },
-    getAge(birthDate) {
-      if (!birthDate) return 0;
-      const birth = new Date(birthDate);
+    getAge(dateOfBirth) {
+      if (!dateOfBirth) return 0;
+      const birth = new Date(dateOfBirth);
       const diffMs = Date.now() - birth.getTime();
       const ageDt = new Date(diffMs);
       return Math.abs(ageDt.getUTCFullYear() - 1970);
     }
   },
   mounted() {
-
-    // console.log("Selected Seats:", selectedSeats);
     console.log("Passenger Infos:", this.bookingData);
-
-    const savedParams = JSON.parse(localStorage.getItem('searchParams'));
-    if (savedParams?.routeDisplay) {
-      this.routeLabel = savedParams.routeDisplay;
-    }
-
-  }
-  ,
+  },
 
   created() {
     if (this.$route.query.bookingData) {
