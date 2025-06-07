@@ -45,63 +45,70 @@ function getSeatColor(seatNumber) {
 function toggleSeat(seatNumber) {
   if (isSeatDisabled(seatNumber)) return
   const index = selectedSeats.value.indexOf(seatNumber)
-  if (index === -1) selectedSeats.value.push(seatNumber)
-  else selectedSeats.value.splice(index, 1)
+  if (index === -1) {
+    selectedSeats.value.push(seatNumber)
+    console.log(selectedSeats.value)
+  } else selectedSeats.value.splice(index, 1)
+}
+function getSeatType(rowNumber) {
+  return rowNumber <= 5 ? 'Business' : 'Economy';
 }
 
 async function loadSeatData(flightId) {
-  if (!flightId) return
+  if (!flightId) return;
   try {
-    const flightRes = await axios.get(`/flights/flight/${flightId}`)
-    const totalSeats = flightRes.data.data.seats || 0
+    const flightRes = await axios.get(`/flights/flight/${flightId}`);
+    const totalSeats = flightRes.data.data.seats || 0;
 
-    const ticketRes = await axios.get(`/ticket/flight/${flightId}`)
-    const bookedSeatSet = new Set(ticketRes.data.data.map(t => t.seatNumber))
+    const ticketRes = await axios.get(`/ticket/flight/${flightId}`);
+    const bookedSeatSet = new Set(ticketRes.data.data.map(t => t.seatNumber));
 
-    const seatMap = []
-    const seatsPerRow = 9
-    const fullRows = Math.floor(totalSeats / seatsPerRow)
-    const remainingSeats = totalSeats % seatsPerRow
-    let rowIndex = 1
+    const seatMap = [];
+    const seatsPerRow = 9;
+    const fullRows = Math.floor(totalSeats / seatsPerRow);
+    const remainingSeats = totalSeats % seatsPerRow;
+    let rowIndex = 1;
 
-    // Hàng đầy đủ 9 ghế
     for (let i = 0; i < fullRows; i++) {
       const row = rows.map(letter => {
-        const seatNumber = `${rowIndex}${letter}`
+        const seatNumber = `${rowIndex}${letter}`;
         return {
           seatNumber,
-          available: !bookedSeatSet.has(seatNumber)
-        }
-      })
-      seatMap.push(row)
-      rowIndex++
+          available: !bookedSeatSet.has(seatNumber),
+          isBooked: bookedSeatSet.has(seatNumber),
+          type: getSeatType(rowIndex)
+        };
+      });
+      seatMap.push(row);
+      rowIndex++;
     }
 
     if (remainingSeats > 0) {
-      const row = []
+      const row = [];
       for (let i = 0; i < remainingSeats; i++) {
-        const seatNumber = `${rowIndex}${rows[i]}`
+        const seatNumber = `${rowIndex}${rows[i]}`;
         row.push({
           seatNumber,
-          available: !bookedSeatSet.has(seatNumber)
-        })
+          available: !bookedSeatSet.has(seatNumber),
+          isBooked: bookedSeatSet.has(seatNumber),
+          type: getSeatType(rowIndex)
+        });
       }
-
       const fullRow = rows.map(letter =>
           row.find(s => s.seatNumber.endsWith(letter)) || null
-      )
-      seatMap.push(fullRow)
+      );
+      seatMap.push(fullRow);
     }
 
-    seatGrid.value = seatMap
-    seatPerColumn.value = seatMap.length
-    bookedSeats.value = ticketRes.data.data.map(t => t.seatNumber)
-    selectedSeats.value = [...props.selected]
+    seatGrid.value = seatMap;
+    seatPerColumn.value = seatMap.length;
+    bookedSeats.value = ticketRes.data.data.map(t => t.seatNumber);
 
   } catch (err) {
-    console.error('Lỗi khi tải dữ liệu ghế:', err)
+    console.error('Lỗi khi tải dữ liệu ghế:', err);
   }
 }
+
 
 defineExpose({loadSeatData})
 </script>
@@ -115,19 +122,26 @@ defineExpose({loadSeatData})
           <div class="seat-block">
             <div v-for="(row, index) in seatGrid" :key="index" class="seat-row">
               <template v-for="(seat, i) in row.slice(0, 3)" :key="i">
-                <v-btn
+                <div
                     v-if="seat"
-                    :color="getSeatColor(seat.seatNumber)"
-                    :disabled="isSeatDisabled(seat.seatNumber)"
-                    class="ma-1 seat-button"
-                    @click="toggleSeat(seat.seatNumber)"
+                    :class="['seat-icon', {
+    'selected': selectedSeats.includes(seat.seatNumber),
+    'disabled': isSeatDisabled(seat.seatNumber),
+    'booked': seat.isBooked,
+    'business': seat.type === 'Business',
+    'economy': seat.type === 'Economy'
+  }]"
+                    @click="!isSeatDisabled(seat.seatNumber) && toggleSeat(seat.seatNumber)"
+                    style="cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;"
+                    title="Ghế {{ seat.seatNumber }}"
                 >
-                  {{ seat.seatNumber }}
-                </v-btn>
+                  <v-icon large>mdi-seat-recline-normal</v-icon>
+                  <span style="margin-top: 4px;">{{ seat.seatNumber }}</span>
+                </div>
                 <div v-else class="seat-placeholder ma-1"/>
               </template>
 
-<!--              <div v-else class="seat-placeholder ma-1"/>-->
+              <!--              <div v-else class="seat-placeholder ma-1"/>-->
             </div>
           </div>
 
@@ -135,31 +149,25 @@ defineExpose({loadSeatData})
 
           <div class="seat-block">
             <div v-for="(row, index) in seatGrid" :key="'middle-' + index" class="seat-row">
-<!--              <v-btn-->
-<!--                  v-for="seat in row.slice(3, 6)"-->
-<!--                  :key="seat?.seatNumber || 'null2'"-->
-<!--                  v-if="seat"-->
-<!--                  :color="getSeatColor(seat.seatNumber)"-->
-<!--                  :disabled="isSeatDisabled(seat.seatNumber)"-->
-<!--                  class="ma-1 seat-button"-->
-<!--                  @click="toggleSeat(seat.seatNumber)"-->
-<!--              >-->
-<!--                {{ seat.seatNumber }}-->
-<!--              </v-btn>-->
               <template v-for="(seat, i) in row.slice(3, 6)" :key="i">
-                <v-btn
+                <div
                     v-if="seat"
-                    :color="getSeatColor(seat.seatNumber)"
-                    :disabled="isSeatDisabled(seat.seatNumber)"
-                    class="ma-1 seat-button"
-                    @click="toggleSeat(seat.seatNumber)"
+                    :class="['seat-icon', {
+    'selected': selectedSeats.includes(seat.seatNumber),
+    'disabled': isSeatDisabled(seat.seatNumber),
+    'booked': seat.isBooked,
+    'business': seat.type === 'Business',
+    'economy': seat.type === 'Economy'
+  }]"
+                    @click="!isSeatDisabled(seat.seatNumber) && toggleSeat(seat.seatNumber)"
+                    style="cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;"
+                    title="Ghế {{ seat.seatNumber }}"
                 >
-                  {{ seat.seatNumber }}
-                </v-btn>
+                  <v-icon large>mdi-seat-recline-normal</v-icon>
+                  <span style="margin-top: 4px;">{{ seat.seatNumber }}</span>
+                </div>
                 <div v-else class="seat-placeholder ma-1"/>
               </template>
-
-<!--              <div v-else class="seat-placeholder ma-1"/>-->
             </div>
           </div>
 
@@ -167,31 +175,25 @@ defineExpose({loadSeatData})
 
           <div class="seat-block">
             <div v-for="(row, index) in seatGrid" :key="'right-' + index" class="seat-row">
-<!--              <v-btn-->
-<!--                  v-for="seat in row.slice(6, 9)"-->
-<!--                  :key="seat?.seatNumber || 'null3'"-->
-<!--                  v-if="seat"-->
-<!--                  :color="getSeatColor(seat.seatNumber)"-->
-<!--                  :disabled="isSeatDisabled(seat.seatNumber)"-->
-<!--                  class="ma-1 seat-button"-->
-<!--                  @click="toggleSeat(seat.seatNumber)"-->
-<!--              >-->
-<!--                {{ seat.seatNumber }}-->
-<!--              </v-btn>-->
               <template v-for="(seat, i) in row.slice(6, 9)" :key="i">
-                <v-btn
+                <div
                     v-if="seat"
-                    :color="getSeatColor(seat.seatNumber)"
-                    :disabled="isSeatDisabled(seat.seatNumber)"
-                    class="ma-1 seat-button"
-                    @click="toggleSeat(seat.seatNumber)"
+                    :class="['seat-icon', {
+    'selected': selectedSeats.includes(seat.seatNumber),
+    'disabled': isSeatDisabled(seat.seatNumber),
+    'booked': seat.isBooked,
+    'business': seat.type === 'Business',
+    'economy': seat.type === 'Economy'
+  }]"
+                    @click="!isSeatDisabled(seat.seatNumber) && toggleSeat(seat.seatNumber)"
+                    style="cursor: pointer; user-select: none; display: flex; flex-direction: column; align-items: center;"
+                    title="Ghế {{ seat.seatNumber }}"
                 >
-                  {{ seat.seatNumber }}
-                </v-btn>
+                  <v-icon large>mdi-seat-recline-normal</v-icon>
+                  <span style="margin-top: 4px;">{{ seat.seatNumber }}</span>
+                </div>
                 <div v-else class="seat-placeholder ma-1"/>
               </template>
-
-              <!--              <div v-else class="seat-placeholder ma-1"/>-->
             </div>
           </div>
         </div>
@@ -205,36 +207,77 @@ defineExpose({loadSeatData})
   </v-dialog>
 </template>
 
-<style scoped>
+<style>
 .seat-layout {
-  gap: 30px;
+  gap: 30px !important;
 }
 
 .seat-block {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .seat-row {
-  display: flex;
+  display: flex !important;
 }
 
 .aisle {
-  width: 30px;
+  width: 30px !important;
 }
 
-.seat-button {
+.seat-icon {
   width: 50px !important;
   height: 50px !important;
   min-width: 50px !important;
-  font-size: 14px;
-  padding: 0;
-  text-align: center;
-  justify-content: center;
+  font-size: 14px !important;
+  padding: 0 !important;
+  text-align: center !important;
+  justify-content: center !important;
+  border: 2px solid transparent !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  color: #555 !important;
+  background-color: white !important;
+  user-select: none !important;
+  margin: 4px !important;
 }
 
+.seat-icon.selected {
+  border-color: #f44336 !important;
+  background-color: #f11515 !important;
+  color: #f44336 !important;
+  font-weight: bold !important;
+}
+
+.seat-icon.booked {
+  color: grey !important;
+  background-color: white !important;
+  cursor: default !important;
+  border-color: #a8a8a8 !important;
+
+}
+
+.seat-icon.business {
+  color: #a85de3 !important;
+  border-color: #d9bffd !important;
+
+}
+
+.seat-icon.economy {
+  color: #35d73a !important;
+  border-color: #a9f8ae !important;
+
+}
+
+.seat-icon:hover:not(.booked):not(.selected) {
+  border-color: #f44336 !important;
+  color: #f44336 !important;
+  background-color: #fbbbbb !important;
+}
+
+
 .seat-placeholder {
-  width: 50px;
-  height: 50px;
+  width: 50px !important;
+  height: 50px !important;
 }
 </style>

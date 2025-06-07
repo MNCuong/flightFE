@@ -135,28 +135,31 @@
                   dense
                   variant="outlined"
                   rounded="lg"
-                  prepend-inner-icon="mdi-email"
+                  prepend-inner-icon="mdi-flag"
               ></v-text-field>
             </v-col>
           </v-row>
 
           <v-row dense>
             <v-col cols="12" md="4">
-              <v-text-field
-                  v-model="passenger.phone"
-                  label="Số điện thoại"
+              <v-select
+                  v-model="passenger.gender"
+                  :items="genderOptions"
+                  label="Giới tính"
+                  item-title="label"
+                  item-value="value"
                   required
                   outlined
                   dense
                   variant="outlined"
                   rounded="lg"
-                  prepend-inner-icon="mdi-phone"
-              ></v-text-field>
+                  prepend-inner-icon="mdi-gender-male-female"
+              />
             </v-col>
 
             <v-col cols="12" md="4">
               <v-text-field
-                  v-model="passenger.idNumber"
+                  v-model="passenger.nationalId"
                   label="CCCD / Hộ chiếu"
                   outlined
                   dense
@@ -175,7 +178,7 @@
                   dense
                   variant="outlined"
                   rounded="lg"
-                  prepend-inner-icon="mdi-email"
+                  prepend-inner-icon="mdi-calendar"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -194,29 +197,21 @@
       </v-btn>
     </v-form>
 
-<!--    <v-alert-->
-<!--        v-if="message"-->
-<!--        type="info"-->
-<!--        class="mt-5"-->
-<!--        border="left"-->
-<!--        colored-border-->
-<!--        elevation="2"-->
-<!--        dense-->
-<!--    >-->
-<!--      {{ message }}-->
-<!--    </v-alert>-->
+    <transition name="fade-only-leave">
+      <v-alert
+          v-if="message"
+          type="info"
+          class="mt-5"
+          border="left"
+          colored-border
+          elevation="2"
+          dense
+      >
+        {{ message }}
+      </v-alert>
+    </transition>
 
-    <v-alert
-        v-if="message"
-        type="info"
-        class="mt-5"
-        border="left"
-        colored-border
-        elevation="2"
-        dense
-    >
-      {{ message }}
-    </v-alert>
+
   </v-container>
 
   <SeatSelectionModal
@@ -241,14 +236,16 @@ import axios from '../../services/api.js';
 import FlightInfo from '@/components/FlightInfo.vue';
 import {useRoute} from 'vue-router';
 import SeatSelectionModal from '@/components/SeatSelectionModal.vue';
+import {useRouter} from 'vue-router';
+
 const passengerNumber = ref(1);
 
 const passengers = ref([
-  {name: '', email: '', phone: ''}
+  {name: '', email: '', gender: '', nationality: '', nationalId: '', dateOfBirth: new Date},
 ]);
 
 function addPassenger() {
-  passengers.value.push({name: '', email: '', phone: ''});
+  passengers.value.push({name: '', email: '', gender: '', nationality: '', nationalId: '', dateOfBirth: new Date});
 }
 
 function removePassenger(index) {
@@ -256,28 +253,24 @@ function removePassenger(index) {
     passengers.value.splice(index, 1);
   }
 }
+const genderOptions = [
+  { label: 'Nam', value: 0 },
+  { label: 'Nữ', value: 1 }
+];
 
 const showDepartureModal = ref(false);
 const departureSelectedSeats = ref([]);
 const route = useRoute();
+const router = useRouter();
 const departureFlight = ref(null);
 const returnFlight = ref(null);
-const passengerName = ref('');
-const email = ref('');
-const phone = ref('');
 const message = ref('');
-const seatList = ref('');
 const bookedSeats = ref([]);
 const selectedSeats = ref([]);
-const seatDialog = ref(false);
-const ticketList = ref([]);
-const selectedFlightLabel = ref('');
-const selectedFlightType = ref('');
 const seatModalVisible = ref(false)
-const selectedFlightId = ref(null)
 const showReturnModal = ref(false);
 const returnSelectedSeats = ref([]);
-
+let number = 0
 const handleReturnSeatsSelected = (seats) => {
   returnSelectedSeats.value = seats
   showReturnModal.value = false
@@ -287,29 +280,12 @@ const handleOnSeatsConfirmed = (seats) => {
   showDepartureModal.value = false
 }
 
-function generateSeats(totalSeats) {
-  const seatsPerRow = 6;
-  const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
-  const rows = Math.ceil(totalSeats / seatsPerRow);
-  const seats = [];
-
-  for (let row = 1; row <= rows; row++) {
-    for (let i = 0; i < seatsPerRow; i++) {
-      const seatNumber = `${row}${seatLetters[i]}`;
-      seats.push(seatNumber);
-      if (seats.length >= totalSeats) break;
-    }
-  }
-  return seats;
-}
-
 const openDepartureSeatDialog = async () => {
   if (!departureFlight.value) return;
 
   try {
     const resFlight = await axios.get(`/flights/flight/${departureFlight.value.id}`);
     const totalSeats = resFlight.data.data.seats || 0;
-    seatList.value = generateSeats(totalSeats); // Tạo danh sách ghế dạng ['1A', '1B', ...]
     const resTickets = await axios.get(`/ticket/flight/${departureFlight.value.id}`);
     bookedSeats.value = resTickets.data.data.map(ticket => ticket.seatNumber);
     selectedSeats.value = bookedSeats.value
@@ -326,7 +302,6 @@ const openReturnSeatDialog = async () => {
 
     const resFlight = await axios.get(`/flights/flight/${returnFlight.value.id}`);
     const totalSeats = resFlight.data.data.seats || 0;
-    seatList.value = generateSeats(totalSeats);
     const resTickets = await axios.get(`/ticket/flight/${returnFlight.value.id}`);
     bookedSeats.value = resTickets.data.data.map(ticket => ticket.seatNumber);
     selectedSeats.value = [...bookedSeats.value]
@@ -336,53 +311,6 @@ const openReturnSeatDialog = async () => {
   }
 };
 
-const showSeatModal = (flightId) => {
-  selectedFlightId.value = flightId
-  seatModalVisible.value = true
-}
-
-const onSeatsConfirmed = (seats) => {
-  if (seatModalVisible.value) {
-    departureSelectedSeats.value = seats;
-  } else if (showReturnModal.value) {
-    returnSelectedSeats.value = seats;
-  }
-};
-
-// const openSeatDialog = async (type) => {
-//   selectedFlightType.value = type;
-//   selectedFlightLabel.value = type === 'departure' ? 'Chuyến đi' : 'Chuyến về';
-//   const flightId = type === 'departure' ? departureFlight.value?.id : returnFlight.value?.id;
-// console.log("flightId",flightId);
-//   if (flightId) {
-//     const res = await axios.get(`/flights/flight//${flightId}`);
-//     const resTicket = await axios.get(`/flights/flight//${flightId}`);
-//     seatList.value = res.data.seats;
-//     ticketList.value = res.data.seatNumber;
-//     selectedSeats.value = [];
-//     seatDialog.value = true;
-//   }
-// };
-
-const toggleSeat = (seatNumber) => {
-  if (selectedSeats.value.includes(seatNumber)) {
-    selectedSeats.value = selectedSeats.value.filter(s => s !== seatNumber);
-  } else {
-    selectedSeats.value.push(seatNumber);
-  }
-};
-
-
-const confirmSeatSelection = () => {
-  if (selectedFlightType.value === 'departure') {
-    departureSelectedSeats.value = [...selectedSeats.value];
-  } else {
-    returnSelectedSeats.value = [...selectedSeats.value];
-  }
-  seatDialog.value = false;
-};
-
-
 const fetchFlightById = async (id) => {
   const res = await axios.get(`/flights/flight/${id}`);
   return res.data.data;
@@ -391,13 +319,16 @@ const fetchFlightById = async (id) => {
 onMounted(async () => {
   const departureId = route.query.departureFlightId;
   const returnId = route.query.returnFlightId;
-  const number = parseInt(route.query.passengerNumber) || 1;
+  number = parseInt(route.query.passengerNumber) || 1;
   passengerNumber.value = number;
 
-  passengers.value = Array.from({ length: number }, () => ({
+  passengers.value = Array.from({length: number}, () => ({
     name: '',
     email: '',
-    phone: ''
+    gender: '',
+    nationality: '',
+    dateOfBirth: '',
+    nationalId: '',
   }));
 
   if (departureId) {
@@ -409,33 +340,43 @@ onMounted(async () => {
 });
 
 const submitBooking = async () => {
-  if (!passengerName.value || !email.value || !phone.value) {
-    message.value = 'Vui lòng nhập đầy đủ thông tin hành khách.';
-    return;
-  }
-  for (const p of passengers.value) {
-    if (!p.name || !p.email || !p.phone) {
+
+  for (const passenger of passengers.value) {
+    if (!passenger.name || !passenger.email ||   passenger.gender === undefined || passenger.gender === null
+        || !passenger.nationality || !passenger.nationalId || !passenger.dateOfBirth) {
       message.value = 'Vui lòng nhập đầy đủ thông tin hành khách.';
+      setTimeout(() => {
+        message.value = '';
+      }, 5000);
       return;
     }
   }
-
+  if (departureSelectedSeats.value.length < 0 || returnSelectedSeats.value.length < 0) {
+    message.value = 'Vui lòng chọn ghế chuyến đi và chuyến về.';
+    setTimeout(() => {
+      message.value = '';
+    }, 5000);
+    return;
+  }
+  if (departureSelectedSeats.value.length < number || returnSelectedSeats.value.length < number || departureSelectedSeats.value.length > number || returnSelectedSeats.value.length > number) {
+    message.value = 'Vui lòng chọn ghế chuyến đi và chuyến về bằng với số lượng hành khách.';
+    setTimeout(() => {
+      message.value = '';
+    }, 5000);
+    return;
+  }
   try {
     const bookingData = {
       departureFlightId: departureFlight.value.id,
       returnFlightId: returnFlight.value?.id || null,
-      passengerName: passengerName.value,
-      email: email.value,
-      phone: phone.value,
       departureSeats: departureSelectedSeats.value,
       returnSeats: returnSelectedSeats.value,
       passengers: passengers.value
     };
-
-    const res = await axios.post('/bookings', bookingData);
-    message.value = 'Đặt vé thành công! Mã đặt vé của bạn: ' + res.data.data.bookingCode;
-
-    // Có thể redirect đến trang lịch sử vé hoặc trang xác nhận khác
+    console.error("data: ", bookingData);
+    localStorage.setItem('bookingDataRoundTrip', JSON.stringify(bookingData));
+    console.error("bookingDataRoundTrip: ", JSON.stringify(bookingData));
+    router.push('/round-trip/confirm');
   } catch (error) {
     message.value = 'Đặt vé thất bại, vui lòng thử lại.';
     console.error(error);
@@ -576,5 +517,6 @@ const submitBooking = async () => {
   top: 0;
   right: 0;
 }
+
 
 </style>
