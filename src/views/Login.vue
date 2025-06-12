@@ -77,7 +77,50 @@
                   </v-btn>
                 </v-col>
               </v-row>
-
+              <!--              <v-row>-->
+              <!--                <v-col cols="12" sm="6" md="12">-->
+              <!--                  <v-btn-->
+              <!--                      color="red darken-1"-->
+              <!--                      dark-->
+              <!--                      elevation="2"-->
+              <!--                      style="border-radius: 4px;"-->
+              <!--                      block-->
+              <!--                      @click="loginGoogle"-->
+              <!--                  >-->
+              <!--                    <v-icon left>mdi-google</v-icon>-->
+              <!--                    -Login with Google-->
+              <!--                  </v-btn>-->
+              <!--                </v-col>-->
+              <!--              </v-row>-->
+              <!--              <v-row>-->
+              <!--                <v-col cols="12" sm="6" md="12">-->
+              <!--                  <v-btn-->
+              <!--                      color="blue darken-1"-->
+              <!--                      dark-->
+              <!--                      elevation="2"-->
+              <!--                      style="border-radius: 4px;"-->
+              <!--                      block-->
+              <!--                      @click="loginFacebook"-->
+              <!--                  >-->
+              <!--                    <v-icon left>mdi-facebook</v-icon>-->
+              <!--                   -Login with Facebook-->
+              <!--                  </v-btn>-->
+              <!--                </v-col>-->
+              <!--              </v-row>-->
+<!--              <v-row>-->
+<!--                <v-col cols="6" sm="6" md="6">-->
+<!--                  <GoogleLogin-->
+<!--                      :client-id="clientId"-->
+<!--                      :callback="handleCredentialResponse"-->
+<!--                  />-->
+<!--                </v-col>-->
+<!--                <v-col cols="6" sm="6" md="6">-->
+<!--                <FaceBookLogin-->
+<!--                    :client-id="clientId"-->
+<!--                    :callback="handleCredentialResponse"-->
+<!--                />-->
+<!--              </v-col>-->
+<!--              </v-row>-->
               <v-row justify="center" class="mt-2">
                 <v-col cols="6" class="text-center">
                   <a href="javascript:void(0)" @click="openForgotPasswordDialog" class="text-decoration-none"
@@ -175,6 +218,7 @@
               :rules="[v => !!v || 'Email là bắt buộc', v => /.+@.+\..+/.test(v) || 'Email không hợp lệ']"
           />
         </v-card-text>
+
         <v-card-actions class="justify-end">
           <v-btn variant="text" @click="forgotPasswordDialog = false">Hủy</v-btn>
           <v-btn color="primary" @click="checkEmail" :loading="forgotLoading">
@@ -212,6 +256,7 @@ import {ref, onMounted} from 'vue'
 import {useRouter} from 'vue-router'
 import api from '../services/api.js'
 import {jwtDecode} from 'jwt-decode'
+import {GoogleLogin} from 'vue3-google-login'
 
 const forgotPasswordDialog = ref(false)
 const forgotEmail = ref('')
@@ -245,6 +290,34 @@ const openForgotPasswordDialog = () => {
   forgotPasswordDialog.value = true
   forgotEmail.value = ''
 }
+
+
+const clientId = '196248230427-brrau4oanuoggse5pvnft7lchqj6vf49.apps.googleusercontent.com'
+
+const handleCredentialResponse = (response) => {
+  console.log('Google ID token:', response.credential)
+
+  fetch('http://localhost:5000/api/auth/google', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      token: response.credential
+    })
+  })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Backend response:', data)
+      })
+}
+const loginGoogle = () => {
+  window.location.href = 'http://localhost:5000/oauth2/authorization/google';
+}
+const loginFacebook = () => {
+  window.location.href = 'http://localhost:5000/oauth2/authorization/google';
+}
+
 
 const checkEmail = async () => {
   if (!forgotEmail.value || !/.+@.+\..+/.test(forgotEmail.value)) {
@@ -360,12 +433,13 @@ const login = async () => {
 
     await router.push('/')
   } catch (err) {
-   if(err.response.data.data.lock_time!=null){
-     lockTimeStr = err.response.data.data.lock_time;
-     lockTime = new Date(lockTimeStr);
-     unlockTime = new Date(lockTime.getTime() + 15 * 60000);
-     dialogMessage.value = handleLockCountdown(unlockTime)
-   }{
+    if (err.response.data.data.lock_time != null) {
+      lockTimeStr = err.response.data.data.lock_time;
+      lockTime = new Date(lockTimeStr);
+      unlockTime = new Date(lockTime.getTime() + 15 * 60000);
+      dialogMessage.value = handleLockCountdown(unlockTime)
+    }
+    {
       dialogMessage.value = err.response.data.message
       dialogType.value = 'error'
       dialog.value = true

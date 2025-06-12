@@ -51,9 +51,9 @@
 <!--            <li>-->
 <!--              <router-link to="/customer-support-chat">Hỗ trợ</router-link>-->
 <!--            </li>-->
-<!--            <li>-->
-<!--              <router-link to="/test">test</router-link>-->
-<!--            </li>-->
+            <li>
+              <router-link to="/test">test</router-link>
+            </li>
 
             <template v-if="!isLoggedIn">
               <li>

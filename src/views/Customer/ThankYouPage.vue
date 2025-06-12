@@ -23,26 +23,44 @@
     </div>
   </section>
 
-  <v-container class="text-center mt-5">
-    <div v-if="isLoading">
-      <v-alert type="info" border="left" colored-border elevation="2">
-        Đang xử lý kết quả thanh toán...
-      </v-alert>
-    </div>
-    <div v-else-if="success">
-      <v-alert type="success" border="left" colored-border elevation="2">
-        Thanh toán thành công! Đang chuyển hướng sau {{ countdown }} giây...
-      </v-alert>
-    </div>
-    <div v-else>
-      <v-alert type="error" border="left" colored-border elevation="2">
-        Thanh toán thất bại. Mã lỗi: {{ responseCode }}
-      </v-alert>
-      <v-btn color="primary" class="mt-3" @click="goBack">Quay lại</v-btn>
-    </div>
+  <v-container class="mt-10" max-width="600">
+    <v-card elevation="3" class="pa-6">
+      <div v-if="isLoading" class="text-center">
+        <v-alert type="info" border="left" colored-border elevation="2" dense class="mb-4">
+          <v-icon left color="blue lighten-1" size="28">mdi-timer-sand</v-icon>
+          Đang xử lý kết quả thanh toán...
+        </v-alert>
+      </div>
+
+      <div v-else-if="success" class="text-center">
+        <v-alert type="success" border="left" colored-border elevation="2" dense class="mb-4">
+          <v-icon left color="green darken-2" size="28">mdi-check-circle</v-icon>
+          Thanh toán thành công! Đang chuyển hướng sau
+          <span class="font-weight-bold mx-1 countdown">{{ countdown }}</span> giây...
+        </v-alert>
+        <v-progress-linear
+            :value="(countdown / countdownStart) * 100"
+            color="green"
+            height="8"
+            rounded
+            class="mb-2"
+            striped
+            indeterminate
+        ></v-progress-linear>
+      </div>
+
+      <div v-else class="text-center">
+        <v-alert type="error" border="left" colored-border elevation="2" dense class="mb-4">
+          <v-icon left color="red darken-2" size="28">mdi-alert-circle</v-icon>
+          Thanh toán thất bại. Mã lỗi: <span class="font-weight-bold">{{ responseCode }}</span>
+        </v-alert>
+        <v-btn color="primary" class="mt-4" large rounded @click="goBack">
+          <v-icon left>mdi-arrow-left</v-icon> Quay lại
+        </v-btn>
+      </div>
+    </v-card>
   </v-container>
 </template>
-
 
 <script>
 import axios from '../../services/api';
@@ -53,8 +71,9 @@ export default {
       isLoading: true,
       success: false,
       responseCode: null,
-      countdown: 3,
+      countdown: 5,
       countdownInterval: null,
+      countdownStart: 5,
       bookingDataRequest: null,
       bookingData: null,
       paymentPayload: null,
@@ -65,11 +84,9 @@ export default {
       this.$router.push('/');
     },
     startCountdown() {
-      console.log('Bắt đầu đếm ngược');
       this.countdownInterval = setInterval(() => {
         if (this.countdown > 0) {
           this.countdown--;
-          console.log('Countdown: ', this.countdown);
         } else {
           clearInterval(this.countdownInterval);
           this.$router.push('/flight-ticket-list');
@@ -78,11 +95,9 @@ export default {
     },
 
     async saveBookingInformation() {
-      console.log('Booking data:', this.bookingDataRequest);
       try {
         const response = await axios.post('/passengers/booking', this.bookingDataRequest);
-        console.log('this.bookingDataRequest:', this.bookingDataRequest);
-        console.log('response:', response);
+        console.log('Booking saved:', response);
       } catch (error) {
         console.error('Lỗi khi lưu thông tin đặt vé:', error);
       }
@@ -90,7 +105,7 @@ export default {
 
     async savePaymentData(paymentData) {
       try {
-        const response = await axios.get("/payment/vnpay_return", { params: paymentData });
+        const response = await axios.get("/payment/vnpay_return", {params: paymentData});
         console.log("Thông tin giao dịch đã được lưu:", response.data);
       } catch (error) {
         console.error("Lỗi khi lưu giao dịch:", error);
@@ -102,42 +117,37 @@ export default {
   async mounted() {
     const query = this.$route.query;
     this.responseCode = query.vnp_ResponseCode;
+
     try {
       this.bookingData = JSON.parse(localStorage.getItem('bookingData'));
-      console.log('1234:', this.bookingData);
-
     } catch (error) {
       console.error('Lỗi khi parse bookingData:', error);
-      this.bookingData = [];
+      this.bookingData = null;
     }
 
     try {
-      this.paymentPayload = JSON.parse(localStorage.getItem('paymentPayload') || '[]');
-      console.log('1234:', this.paymentPayload);
-
+      this.paymentPayload = JSON.parse(localStorage.getItem('paymentPayload') || 'null');
     } catch (error) {
       console.error('Lỗi khi parse paymentPayload:', error);
-      this.paymentPayload = [];
+      this.paymentPayload = null;
     }
-
-    // console.log('paymentPayload:', JSON.stringify(this.paymentPayload, null, 2));
-    // console.log('bookingData:', JSON.stringify(this.bookingData, null, 2));
 
     if (this.responseCode === '00' || this.responseCode === '200') {
       this.success = true;
-      console.log('bookingDataaádasdsad:', this.bookingData);
 
       this.bookingDataRequest = {
-        departureFlightId:this.bookingData.departureFlightId,
-        departureSeats:this.bookingData.departureSeats,
-        returnFlightId:this.bookingData.returnFlightId,
-        returnSeats:this.bookingData.returnSeats,
-        flightId: this.paymentPayload.bookingId,
-        passengerInfos: this.bookingData.passengers,
-        totalAmount: parseInt(query.vnp_Amount)/1000,
+        departureFlightId: this.bookingData?.departureFlightId || null,
+        departureSeats: this.bookingData?.departureSeats || [],
+        returnFlightId: this.bookingData?.returnFlightId || null,
+        returnSeats: this.bookingData?.returnSeats || [],
+        flightId: this.paymentPayload?.bookingId || null,
+        passengerInfos: this.bookingData?.passengers || [],
+        totalAmount: parseInt(query.vnp_Amount) / 1000,
         transactionNo: query.vnp_TransactionNo,
         paymentStatus: 'Success',
       };
+
+      // Tạo paymentData từ params URL
       const params = new URLSearchParams(window.location.search);
       let paymentData = {};
       params.forEach((value, key) => {
@@ -148,27 +158,70 @@ export default {
         await this.savePaymentData(paymentData);
         await this.saveBookingInformation();
         this.startCountdown();
-
-
       } catch (error) {
         console.error('Lỗi trong quá trình lưu dữ liệu:', error);
       }
-
     } else {
       this.success = false;
     }
 
     this.isLoading = false;
-  }
+  },
 };
 </script>
 
 <style scoped>
-.text-success {
-  color: green;
+
+
+.overlay-bg {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: 1;
 }
 
-.text-danger {
-  color: red;
+.about-banner .container {
+  position: relative;
+  z-index: 2;
+}
+
+.text-white-70 {
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.3s ease;
+}
+
+.text-white-70:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.breadcrumb {
+  --bs-breadcrumb-divider: '>';
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.countdown {
+  color: #2e7d32; /* xanh hợp với thành công */
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.v-alert {
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.v-btn {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .about-banner .display-2 {
+    font-size: 2.5rem;
+  }
 }
 </style>
