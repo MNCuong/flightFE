@@ -28,7 +28,6 @@ import CustomerSupportChat from "@/views/Customer/CustomerSupportChat.vue";
 import RoundTripBooking from "@/views/Customer/RoundTripBooking.vue";
 import PassengerInfo from "@/views/Customer/PassengerInfo.vue";
 import Test from "@/views/test.vue"
-import nhap from "@/views/Customer/nhap.vue"
 import RoundTripConfirm from "@/views/Customer/RoundTripConfirm.vue"
 
 // import FlightTicketDetails from '@/views/Customer/FlightTicketDetails.vue';
@@ -61,7 +60,6 @@ const routes = [
       { path: 'round-trip-booking', component: RoundTripBooking, name: 'round-trip-booking' },
       { path: 'passenger-info', component: PassengerInfo, name: 'passenger-info' },
       { path: 'test', component: Test, name: 'test' },
-      { path: 'show-info', component: nhap, name: 'nhap' },
       { path: 'round-trip/confirm', component: RoundTripConfirm, name: 'round-trip-confirm' },
     ]
   },
